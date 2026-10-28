@@ -136,6 +136,11 @@ body.locked{overflow:hidden}
 
 /* Piste : ellipse inclinée, IMMOBILE. Son transform n'est jamais animé —
    une animation écraserait le scaleY et l'ellipse redeviendrait un cercle. */
+/* Conteneur des orbites */
+.orb-orbits{position:absolute;inset:0;display:block}
+
+/* Piste : ellipse inclinée, IMMOBILE. Son transform n'est jamais animé —
+   une animation écraserait le scaleY et l'ellipse redeviendrait un cercle. */
 .orb-ring{
   position:absolute;border-radius:50%;
   border:1px solid transparent;
@@ -168,8 +173,7 @@ body.locked{overflow:hidden}
 }
 
 /* Le satellite décrit son orbite : quatre points cardinaux suffisent,
-   le navigateur interpole entre eux. Le `translateX` est en pourcentage
-   de la SCÈNE grâce à --r, ce qui le rend indépendant de la taille du satellite. */
+   le navigateur interpole entre eux. */
 @keyframes satOrbit{
   0%  {transform:translate(-50%,-50%) rotate(0deg)   translateX(var(--r,42%)) rotate(0deg)}
   25% {transform:translate(-50%,-50%) rotate(90deg)  translateX(var(--r,42%)) rotate(-90deg)}

@@ -188,7 +188,9 @@ body.locked{overflow:hidden}
   0%{transform:rotate(64deg) scaleY(.5)}
   100%{transform:rotate(424deg) scaleY(.5)}
 }
-
+@keyframes spin1{to{transform:rotate(336deg) scaleX(1.06)}}
+@keyframes spin2{to{transform:rotate(382deg) scaleX(1.14)}}
+@keyframes spin3{to{transform:rotate(424deg) scaleY(.5)}}
 .orb-halo{position:absolute;border-radius:50%;filter:blur(20px);pointer-events:none}
 .h1{inset:-6%;background:radial-gradient(circle,rgba(169,154,255,.30),transparent 66%);animation:pulse 6.5s ease-in-out infinite}
 .h2{inset:12%;background:radial-gradient(circle,rgba(128,229,223,.22),transparent 62%);animation:pulse 8.5s ease-in-out infinite reverse}
@@ -275,6 +277,7 @@ body.locked{overflow:hidden}
 }
 .empty h4{margin:0 0 6px;font-family:var(--serif);font-size:17px;font-weight:400;color:var(--ink-1)}
 .empty p{margin:0 0 14px;font-size:12.5px;line-height:1.6;color:var(--ink-3)}
+
 /* ---------- Derniers fragments ---------- */
 .recent{display:flex;flex-direction:column;gap:10px}
 .mini{
@@ -477,6 +480,7 @@ textarea{resize:vertical;line-height:1.62;min-height:120px}
 .tag{font-size:11.5px;color:var(--turquoise);opacity:.9}
 .tag::before{content:"#"}
 .dc-nfrag{font-size:11px;color:var(--ink-4);margin-left:auto;flex:0 0 auto}
+
 /* ---------- Feuilles ---------- */
 .sheet-backdrop{position:fixed;inset:0;z-index:60;background:rgba(4,4,12,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fade .28s both}
 @keyframes fade{from{opacity:0}to{opacity:1}}

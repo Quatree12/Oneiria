@@ -320,10 +320,8 @@
     <button class="btn danger-ghost" id="dr-delete" type="button">Supprimer ce rêve</button>
   </div>
 
-      <fieldset class="field">
-      <legend class="field-label">Émotions <em>facultatif</em></legend>
-      <div class="chips" id="dr-edit-emotions" role="group" aria-label="Émotions"></div>
-    </fieldset>
+  <form class="inline-edit" id="dr-edit-form" hidden>
+    <label class="field">
       <span class="field-label">Titre</span>
       <input type="text" id="dr-edit-titre" maxlength="120" autocomplete="off">
     </label>
@@ -331,6 +329,10 @@
       <span class="field-label">Texte du premier fragment</span>
       <textarea id="dr-edit-texte" rows="7" maxlength="20000"></textarea>
     </label>
+    <fieldset class="field">
+      <legend class="field-label">Émotions <em>facultatif — plusieurs choix possibles</em></legend>
+      <div class="chips" id="dr-edit-emotions" role="group" aria-label="Émotions"></div>
+    </fieldset>
     <div class="form-actions">
       <button class="btn ghost" type="button" id="dr-edit-cancel">Annuler</button>
       <button class="btn primary" type="submit" id="dr-edit-save">Sauvegarder</button>
@@ -383,7 +385,6 @@
       <button class="btn subtle" id="st-import" type="button">Importer un fichier JSON</button>
       <input type="file" id="st-file" accept="application/json,.json" hidden>
     </div>
-    <p class="tiny" id="st-storage"></p>
   </div>
 
   <div class="settings-block">
@@ -392,6 +393,7 @@
     <div class="settings-actions">
       <a class="btn subtle" id="st-guide" href="guide.html">Ouvrir le guide de test</a>
     </div>
+    <p class="tiny" id="st-storage"></p>
   </div>
 
   <div class="settings-block">

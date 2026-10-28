@@ -12,15 +12,10 @@ const SCHEMA = 'oneiria/1';
 
 const EMOTIONS = ['Émerveillement','Joie','Paix','Confusion','Peur','Mélancolie','Curiosité',
   'Nostalgie','Sérénité','Vertige','Tendresse','Colère','Honte','Euphorie','Solitude','Gratitude'];
-
 const EMOTION_COLOR = {
   'Émerveillement':'#A99AFF','Joie':'#80E5DF','Paix':'#9EE7C4',
-  'Confusion':'#F2B6D8','Peur':'#8FA0FF','Mélancolie':'#C6B7FF','Curiosité':'#7FD7E8',
-  'Nostalgie':'#D9B8FF','Sérénité':'#A8E6D0','Vertige':'#9FC4FF','Tendresse':'#FFC2DA',
-  'Colère':'#FF9A8F','Honte':'#C7A5C9','Euphorie':'#7FE8D6','Solitude':'#B0B6D9',
-  'Gratitude':'#FFD9A0'
+  'Confusion':'#F2B6D8','Peur':'#8FA0FF','Mélancolie':'#C6B7FF','Curiosité':'#7FD7E8'
 };
-
 const TYPES = { ecrit:'Écrit', raconte:'Raconté', oublie:'Oublié' };
 
 const PALETTE = [
@@ -192,19 +187,9 @@ const Store = (() => {
 })();
 
 /* ============================================================
-   2. MODÈLE — un rêve porte une LISTE d'émotions
+   2. MODÈLE
    ============================================================ */
 function nowISO(){ return new Date().toISOString(); }
-
-function normEmotions(list){
-  const src = Array.isArray(list) ? list : (list ? [list] : []);
-  const out = [];
-  src.forEach(e => {
-    const v = String(e || '').trim();
-    if (v && !out.includes(v)) out.push(v);
-  });
-  return out;
-}
 
 function newDream({ type='ecrit', title='', text='', emotions=[], keywords=[], drawing=null, date=null }){
   const id = uid();
@@ -392,20 +377,47 @@ function renderUnivers(){
   renderRecent();
 }
 
+/* Une constellation = un thème présent dans AU MOINS DEUX rêves.
+   Les mots vides et les mots de moins de trois lettres sont écartés. */
+const STOPWORDS = new Set(['a','au','aux','avec','ce','ces','cet','dans','de','des','du','elle','en',
+  'et','eux','il','ils','je','la','le','les','leur','lui','ma','mais','me','mes','moi','mon','ne',
+  'nos','notre','nous','on','ou','par','pas','pour','qu','que','qui','sa','se','ses','son','sur',
+  'ta','te','tes','toi','ton','tu','un','une','vos','votre','vous','y','ete','etre','fait','faire']);
+
+function isThemeWord(w){
+  return w.length >= 3 && !STOPWORDS.has(w) && !/^\d+$/.test(w);
+}
+
+/* Lit les émotions d'un rêve : tableau (nouveau format) ou valeur unique
+   (rêves enregistrés avant la sélection multiple). */
+function dreamEmotions(d){
+  if (Array.isArray(d.emotions)) return d.emotions;
+  if (d.emotion) return [d.emotion];
+  return [];
+}
+
+function normEmotions(list){
+  const src = Array.isArray(list) ? list : (list ? [list] : []);
+  const out = [];
+  src.forEach(e => {
+    const v = String(e || '').trim();
+    if (v && !out.includes(v)) out.push(v);
+  });
+  return out;
+}
+
 function themeIndex(){
-  const STOP = new Set(['a','au','aux','avec','ce','ces','cet','dans','de','des','du','elle','en','et',
-    'eux','il','ils','je','la','le','les','leur','lui','ma','mais','me','mes','moi','mon','ne','nos',
-    'notre','nous','on','ou','par','pas','pour','qu','que','qui','sa','se','ses','son','sur','ta','te',
-    'tes','toi','ton','tu','un','une','vos','votre','vous','y','été','être','fait','faire']);
   const map = new Map();
   State.dreams.forEach(d => {
     const set = new Set();
     (d.keywords||[]).forEach(k => {
-      const w = k.toLowerCase().trim();
-      if (w.length < 3 || STOP.has(w) || /^\d+$/.test(w)) return;
-      set.add(w);
+      const w = String(k||'').toLowerCase().trim();
+      if (isThemeWord(w)) set.add(w);
     });
-    (d.emotions||[]).forEach(e => set.add(e.toLowerCase()));
+    dreamEmotions(d).forEach(e => {
+      const w = String(e||'').toLowerCase().trim();
+      if (w) set.add(w);
+    });
     set.forEach(k => {
       if (!map.has(k)) map.set(k, { word:k, count:0, ids:[], color:null });
       const e = map.get(k);
@@ -426,22 +438,7 @@ function renderConstellations(){
   box.innerHTML = '';
   $('#const-count').textContent = themes.length ? themes.length + ' thème(s)' : '';
 
-    if (themes.length === 0){
-    const lead = State.dreams.length
-      ? 'Aucun thème ne revient encore. Dès qu’un mot-clé ou une émotion apparaîtra dans deux rêves, une constellation se formera ici.'
-      : 'Les mots-clés et les émotions de vos rêves dessineront ici des constellations.';
-    $('#const-lead').textContent = lead;
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.innerHTML = State.dreams.length
-      ? '<h4>Pas encore de constellation</h4><p>Réutilisez un mot-clé — « océan », « poursuite » — dans un autre rêve, et l’étoile s’allumera.</p>'
-      : '<h4>Aucun thème pour l’instant</h4><p>Écrivez un premier rêve : ses mots-clés deviendront une étoile, puis une constellation.</p>' +
-        '<button class="btn primary" id="empty-first" type="button">Enregistrer mon premier rêve</button>';
-    box.appendChild(empty);
-    const b = $('#empty-first');
-    if (b) b.addEventListener('click', () => go('raccontes'));
-    return;
-  }
+  if (themes.length === 0){
     $('#const-lead').textContent = 'Les mots-clés et les émotions de vos rêves dessineront ici des constellations.';
     const empty = document.createElement('div');
     empty.className = 'empty';
@@ -469,6 +466,7 @@ function renderConstellations(){
     c.className = 'cnt';
     c.textContent = t.count;
     b.appendChild(c);
+    // Taille progressive selon le nombre de fragments
     const scale = 0.92 + Math.min(0.34, (t.count / max) * 0.34);
     b.style.fontSize = (12.5 * scale + 1.5).toFixed(1) + 'px';
     b.style.animationDelay = Math.min(i * 26, 400) + 'ms';
@@ -531,10 +529,11 @@ function miniCard(d){
 }
 
 /* ============================================================
-   7. RACCONTES — puces multi-sélection
+   7. RACCONTES
    ============================================================ */
 let rcEmotions = [];
 
+/* Sélection MULTIPLE : chaque puce s'ajoute ou se retire indépendamment. */
 function buildChips(container, onPick){
   container.innerHTML = '';
   container.classList.add('chips-multi');
@@ -557,8 +556,9 @@ function buildChips(container, onPick){
   });
 }
 
-/* Remplit les puces depuis une liste d'émotions (édition d'un rêve). */
+/* Remplit les puces depuis une liste (édition d'un rêve existant). */
 function setChips(container, values){
+  if (!container) return;
   const set = new Set(values || []);
   Array.from(container.querySelectorAll('.chip')).forEach(c => {
     const on = set.has(c.dataset.value);
@@ -631,6 +631,7 @@ async function submitRaccontes(e){
   renderUnivers();
   openDrawSheet(d.id, true);
 }
+
 /* ============================================================
    8. DÉCRIT — dictée
    ============================================================ */
@@ -638,6 +639,7 @@ let dcEmotions = [];
 let recognition = null;
 let listening = false;
 let interimBuffer = '';
+let recErrorShown = false;
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -670,6 +672,7 @@ function startDictation(){
     $('#mic-btn').setAttribute('aria-label','Arrêter la dictée');
     $('#mic-state').textContent = 'Écoute active…';
     $('#mic-stop').hidden = false;
+    recErrorShown = false;
   };
   recognition.onresult = (ev) => {
     let finalTxt = '';
@@ -697,13 +700,15 @@ function startDictation(){
     } else if (code !== 'aborted'){
       showHint('#dc-hint','La dictée s’est interrompue (' + code + '). Vous pouvez réessayer ou écrire le récit à la main.');
     }
+    recErrorShown = true;
   };
   recognition.onend = () => {
     listening = false;
     $('#mic-btn').classList.remove('live');
     $('#mic-btn').setAttribute('aria-label','Démarrer la dictée');
     $('#mic-stop').hidden = true;
-    $('#mic-state').textContent = 'Dictée à l’arrêt';
+    if ($('#mic-state').textContent.startsWith('…')) $('#mic-state').textContent = 'Dictée à l’arrêt';
+    else $('#mic-state').textContent = 'Dictée à l’arrêt';
   };
 
   try{
@@ -872,6 +877,7 @@ function drawStroke(s){
     ctx.beginPath();
     ctx.arc(s.pts[0].x * Draw.w, s.pts[0].y * Draw.h, ctx.lineWidth/2, 0, Math.PI*2);
     ctx.fillStyle = s.color;
+    if (s.erase) ctx.globalCompositeOperation = 'destination-out';
     ctx.fill();
   } else {
     ctx.beginPath();
@@ -936,7 +942,6 @@ function openDrawSheet(dreamId, fresh){
   requestAnimationFrame(() => { resizeCanvas(); redraw(); });
 }
 
-/* CORRIGÉ : garder le dessin ramène aussi à l'Univers, comme le passer. */
 async function saveDrawing(){
   const id = State.drawingDreamId;
   const d = getDream(id);
@@ -947,9 +952,9 @@ async function saveDrawing(){
     closeSheet('sheet-dessine');
     toast('Dessin retiré du rêve.');
     refreshAfterDreamChange();
-    go('univers');
     return;
   }
+  // Rendu PNG net : les tracés restent stockés en vectoriel, le PNG est pour l'export.
   const png = renderPNG(1024, Math.round(1024 * (Draw.h / Math.max(1,Draw.w))));
   d.drawing = { strokes: Draw.strokes, dataUrl: png, updatedAt: nowISO() };
   await saveDream(d);
@@ -968,7 +973,6 @@ function renderPNG(w, h){
   Draw.strokes.forEach(s => {
     if (!s.pts.length) return;
     ctx.save();
-    ctx.globalCompositeOperation = 'source-over';
     ctx.strokeStyle = s.color;
     ctx.lineWidth = s.size * (w / Math.max(1, Draw.w));
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -1022,7 +1026,7 @@ function matchesFilter(d){
 function matchesSearch(d, q){
   if (!q) return true;
   const hay = [
-    d.title, dreamText(d), (d.emotions||[]).join(' '), (d.keywords||[]).join(' '),
+    d.title, dreamText(d), dreamEmotions(d).join(' '), (d.keywords||[]).join(' '),
     formatDate(d.createdAt), TYPES[d.type] || ''
   ].join(' ').toLowerCase();
   return q.toLowerCase().split(/\s+/).filter(Boolean).every(term => hay.includes(term));
@@ -1032,7 +1036,7 @@ function matchesConstellation(d){
   if (!State.constellation) return true;
   const c = State.constellation.toLowerCase();
   if ((d.keywords||[]).some(k => k.toLowerCase() === c)) return true;
-  if ((d.emotions||[]).some(e => e.toLowerCase() === c)) return true;
+  if (dreamEmotions(d).some(e => e.toLowerCase() === c)) return true;
   return dreamText(d).toLowerCase().includes(c);
 }
 
@@ -1107,7 +1111,7 @@ function dreamCard(d, i){
   tb.className = 'badge ' + d.type;
   tb.textContent = TYPES[d.type] || 'Fragment';
   badges.appendChild(tb);
-  (d.emotions||[]).forEach(e => {
+  dreamEmotions(d).forEach(e => {
     const eb = document.createElement('span');
     eb.className = 'badge emo';
     eb.textContent = e;
@@ -1139,8 +1143,7 @@ function dreamCard(d, i){
     const img = document.createElement('img');
     img.src = d.drawing.dataUrl; img.alt = 'Dessin associé';
     th.appendChild(img);
-    foot.appendChild
-         foot.appendChild(th);
+    foot.appendChild(th);
   }
   const tags = document.createElement('span');
   tags.className = 'dc-tags';
@@ -1183,7 +1186,7 @@ function openDream(id){
   };
   addMeta(formatDateTime(d.createdAt));
   addMeta(TYPES[d.type] || 'Fragment', d.type);
-  (d.emotions||[]).forEach(e => addMeta(e, 'emo'));
+  dreamEmotions(d).forEach(e => addMeta(e, 'emo'));
   (d.keywords||[]).forEach(k => addMeta('#' + k));
 
   const wrap = $('#dream-draw-wrap');
@@ -1246,7 +1249,7 @@ function startEdit(){
   if (!d) return;
   $('#dr-edit-titre').value = d.title || '';
   $('#dr-edit-texte').value = (d.fragments[0] && d.fragments[0].text) || '';
-  setChips($('#dr-edit-emotions'), d.emotions || []);
+  setChips($('#dr-edit-emotions'), dreamEmotions(d));
   $('#dr-add-form').hidden = true;
   $('#dr-edit-form').hidden = false;
   $('#dr-edit-titre').focus({ preventScroll:true });
@@ -1262,8 +1265,8 @@ async function saveEdit(e){
     return;
   }
   d.title = $('#dr-edit-titre').value.trim();
-  d.emotions = Array.from(($('#dr-edit-emotions') || { querySelectorAll: () => [] })
-    .querySelectorAll('.chip.on')).map(c => c.dataset.value);
+  const emoBox = $('#dr-edit-emotions');
+  if (emoBox) d.emotions = Array.from(emoBox.querySelectorAll('.chip.on')).map(c => c.dataset.value);
   if (!d.fragments.length) d.fragments.push({ id: uid(), kind:d.type, text:txt, createdAt:d.createdAt });
   else d.fragments[0].text = txt;
   await saveDream(d);
@@ -1371,7 +1374,6 @@ function exportJSON(){
   toast(State.dreams.length + ' rêve(s) exporté(s).', 'ok');
 }
 
-/* Accepte : la liste d'émotions (nouveau) OU une émotion unique (ancien export). */
 function normalizeImported(raw){
   const list = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.dreams) ? raw.dreams : null);
   if (!list) return [];
@@ -1391,14 +1393,13 @@ function normalizeImported(raw){
     const drawing = item.drawing && typeof item.drawing === 'object'
       ? (item.drawing.dataUrl || Array.isArray(item.drawing.strokes) ? item.drawing : null)
       : null;
-    const emos = normEmotions(item.emotions && item.emotions.length ? item.emotions : item.emotion);
     out.push({
       id: item.id || uid(),
       schema: SCHEMA,
       type,
       title: String(item.title || ''),
       createdAt: item.createdAt || nowISO(),
-      emotions: emos,
+      emotions: normEmotions(item.emotions && item.emotions.length ? item.emotions : item.emotion),
       keywords: normKeywords(item.keywords),
       drawing,
       fragments: frags
@@ -1478,7 +1479,6 @@ async function updateStorageInfo(){
    ============================================================ */
 function initStars(){
   const c = $('#stars');
-  if (!c) return;
   const ctx = c.getContext('2d');
   let stars = [], raf = null, t = 0;
   const colors = ['#F7F4FF','#A99AFF','#80E5DF','#F2B6D8'];
@@ -1495,6 +1495,7 @@ function initStars(){
         x: Math.random()*w, y: Math.random()*h,
         r: Math.random()*1.3 + .35,
         a: Math.random()*.55 + .2,
+        sp: Math.random()*.02 + .006,
         ph: Math.random()*Math.PI*2,
         c: colors[Math.floor(Math.random()*colors.length)],
         vy: Math.random()*.035 + .008
@@ -1660,10 +1661,6 @@ function wire(){
     openDrawSheet(id, false);
   });
 
-  // Émotions dans la fiche détail (créées à la volée au premier usage)
-  const editEmoBox = $('#dr-edit-emotions');
-  if (editEmoBox) buildChips(editEmoBox, () => {});
-
   // Réglages
   $('#btn-settings').addEventListener('click', () => { openSheet('sheet-settings'); updateStorageInfo(); });
   $('#st-close').addEventListener('click', () => closeSheet('sheet-settings'));
@@ -1688,6 +1685,7 @@ function wire(){
     }
   });
 
+  // Mémoire : rechargement après retour d'onglet
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) renderUnivers();
   });
@@ -1702,6 +1700,8 @@ async function boot(){
   try { await loadDreams(); } catch(e){ console.warn(e); }
   buildChips($('#rc-emotions'), v => { rcEmotions = v; });
   buildChips($('#dc-emotions'), v => { dcEmotions = v; });
+  const editEmoBox = $('#dr-edit-emotions');
+  if (editEmoBox) buildChips(editEmoBox, () => {});
   initCanvas();
   setupSpeech();
   wire();
@@ -1711,6 +1711,7 @@ async function boot(){
     toast('Stockage local indisponible : les rêves de cette session ne seront pas conservés après fermeture.', 'bad');
   }
 
+  // Sécurité : prévenir si un formulaire est en cours
   window.addEventListener('beforeunload', (e) => {
     if (formIsDirty('raccontes') || formIsDirty('decrit')){
       e.preventDefault();

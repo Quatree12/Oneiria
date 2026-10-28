@@ -426,7 +426,22 @@ function renderConstellations(){
   box.innerHTML = '';
   $('#const-count').textContent = themes.length ? themes.length + ' thème(s)' : '';
 
-  if (themes.length === 0){
+    if (themes.length === 0){
+    const lead = State.dreams.length
+      ? 'Aucun thème ne revient encore. Dès qu’un mot-clé ou une émotion apparaîtra dans deux rêves, une constellation se formera ici.'
+      : 'Les mots-clés et les émotions de vos rêves dessineront ici des constellations.';
+    $('#const-lead').textContent = lead;
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.innerHTML = State.dreams.length
+      ? '<h4>Pas encore de constellation</h4><p>Réutilisez un mot-clé — « océan », « poursuite » — dans un autre rêve, et l’étoile s’allumera.</p>'
+      : '<h4>Aucun thème pour l’instant</h4><p>Écrivez un premier rêve : ses mots-clés deviendront une étoile, puis une constellation.</p>' +
+        '<button class="btn primary" id="empty-first" type="button">Enregistrer mon premier rêve</button>';
+    box.appendChild(empty);
+    const b = $('#empty-first');
+    if (b) b.addEventListener('click', () => go('raccontes'));
+    return;
+  }
     $('#const-lead').textContent = 'Les mots-clés et les émotions de vos rêves dessineront ici des constellations.';
     const empty = document.createElement('div');
     empty.className = 'empty';

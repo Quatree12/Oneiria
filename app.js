@@ -1536,12 +1536,13 @@ function renderMemory(){
   // Une chaîne vide n'est pas un thème : on teste la valeur, pas son existence.
   const af = $('#mem-active');
   const theme = String(State.constellation || '').trim();
+  State.constellation = theme || null;
   if (theme){
     af.hidden = false;
     $('#mem-active-label').textContent = 'Thème : ' + theme;
   } else {
     af.hidden = true;
-    State.constellation = null;
+    $('#mem-active-label').textContent = '';
   }
 
   if (items.length === 0){

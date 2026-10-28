@@ -393,22 +393,31 @@ function renderUnivers(){
 }
 
 function themeIndex(){
+  const STOP = new Set(['a','au','aux','avec','ce','ces','cet','dans','de','des','du','elle','en','et',
+    'eux','il','ils','je','la','le','les','leur','lui','ma','mais','me','mes','moi','mon','ne','nos',
+    'notre','nous','on','ou','par','pas','pour','qu','que','qui','sa','se','ses','son','sur','ta','te',
+    'tes','toi','ton','tu','un','une','vos','votre','vous','y','été','être','fait','faire']);
   const map = new Map();
   State.dreams.forEach(d => {
-    const set = new Set((d.keywords||[]).map(k => k.toLowerCase()));
+    const set = new Set();
+    (d.keywords||[]).forEach(k => {
+      const w = k.toLowerCase().trim();
+      if (w.length < 3 || STOP.has(w) || /^\d+$/.test(w)) return;
+      set.add(w);
+    });
     (d.emotions||[]).forEach(e => set.add(e.toLowerCase()));
     set.forEach(k => {
       if (!map.has(k)) map.set(k, { word:k, count:0, ids:[], color:null });
       const e = map.get(k);
       e.count++;
       e.ids.push(d.id);
-      if (/^[a-zà-ÿ]/.test(k)){
-        const emo = EMOTIONS.find(x => x.toLowerCase() === k);
-        if (emo) e.color = EMOTION_COLOR[emo];
-      }
+      const emo = EMOTIONS.find(x => x.toLowerCase() === k);
+      if (emo) e.color = EMOTION_COLOR[emo];
     });
   });
-  return Array.from(map.values()).sort((a,b) => b.count - a.count || a.word.localeCompare(b.word));
+  return Array.from(map.values())
+    .filter(t => t.count >= 2)
+    .sort((a,b) => b.count - a.count || a.word.localeCompare(b.word));
 }
 
 function renderConstellations(){

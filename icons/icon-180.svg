@@ -18,13 +18,13 @@
     </radialGradient>
   </defs>
   <rect width="180" height="180" fill="#090A16"/>
-  <circle cx="90" cy="90" r="84" fill="url(#glow)"/>
+  <circle cx="90" cy="90" r="88.16" fill="url(#glow)"/>
   <g transform="rotate(-24 90 90)">
-    <ellipse cx="90" cy="90" rx="74" ry="25" fill="none" stroke="url(#ring)" stroke-width="4" opacity="0.9"/>
+    <ellipse cx="90" cy="90" rx="77.52" ry="25.840000000000003" fill="none" stroke="url(#ring)" stroke-width="3.96" opacity="0.9"/>
   </g>
-  <circle cx="90" cy="90" r="56" fill="url(#g)"/>
-  <ellipse cx="71" cy="67" rx="16" ry="8" fill="#F7F4FF" opacity="0.75" transform="rotate(-28 71 67)"/>
-  <circle cx="142" cy="52" r="3" fill="#80E5DF"/>
-  <circle cx="28" cy="120" r="2.2" fill="#F2B6D8"/>
-  <circle cx="104" cy="152" r="2" fill="#F7F4FF" opacity="0.85"/>
+  <circle cx="90" cy="90" r="59.28" fill="url(#g)"/>
+  <ellipse cx="70.24" cy="65.68" rx="16.72" ry="8.36" fill="#F7F4FF" opacity="0.75" transform="rotate(-28 70.24 65.68)"/>
+  <circle cx="144.72" cy="50.48" r="3.06" fill="#80E5DF"/>
+  <circle cx="24.64" cy="121.92" r="2.16" fill="#F2B6D8"/>
+  <circle cx="105.2" cy="155.36" r="1.98" fill="#F7F4FF" opacity="0.85"/>
 </svg>

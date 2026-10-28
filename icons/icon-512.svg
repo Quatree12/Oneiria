@@ -18,13 +18,13 @@
     </radialGradient>
   </defs>
   <rect width="512" height="512" fill="#090A16"/>
-  <circle cx="256" cy="256" r="240" fill="url(#glow)"/>
+  <circle cx="256" cy="256" r="249.39999999999998" fill="url(#glow)"/>
   <g transform="rotate(-24 256 256)">
-    <ellipse cx="256" cy="256" rx="210" ry="70" fill="none" stroke="url(#ring)" stroke-width="11" opacity="0.9"/>
+    <ellipse cx="256" cy="256" rx="219.3" ry="73.10000000000001" fill="none" stroke="url(#ring)" stroke-width="11.264" opacity="0.9"/>
   </g>
-  <circle cx="256" cy="256" r="160" fill="url(#g)"/>
-  <ellipse cx="203" cy="190" rx="45" ry="22" fill="#F7F4FF" opacity="0.75" transform="rotate(-28 203 190)"/>
-  <circle cx="403" cy="149" r="8.7" fill="#80E5DF"/>
-  <circle cx="79" cy="341" r="6.4" fill="#F2B6D8"/>
-  <circle cx="295" cy="432" r="5.6" fill="#F7F4FF" opacity="0.85"/>
+  <circle cx="256" cy="256" r="167.70000000000002" fill="url(#g)"/>
+  <ellipse cx="200.1" cy="187.2" rx="47.3" ry="23.65" fill="#F7F4FF" opacity="0.75" transform="rotate(-28 200.1 187.2)"/>
+  <circle cx="410.79999999999995" cy="144.2" r="8.704" fill="#80E5DF"/>
+  <circle cx="71.1" cy="346.3" r="6.144" fill="#F2B6D8"/>
+  <circle cx="299" cy="440.9" r="5.632" fill="#F7F4FF" opacity="0.85"/>
 </svg>

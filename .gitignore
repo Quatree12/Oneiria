@@ -1,0 +1,8 @@
+# ONEIRIA — rien à construire, rien à ignorer d'essentiel.
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+
+# Ne jamais versionner vos rêves exportés : ils contiennent votre vie intérieure.
+oneiria-*.json

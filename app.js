@@ -1303,6 +1303,170 @@ function refreshAfterDreamChange(){
 }
 
 /* ============================================================
+   ANALYSES DANS LE TEMPS — ce que les nuits racontent
+   ============================================================ */
+const DAY_NAMES = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+const MONTH_NAMES = ['janvier','février','mars','avril','mai','juin','juillet',
+  'août','septembre','octobre','novembre','décembre'];
+
+function dateOf(d){ return new Date(d.createdAt); }
+
+/* Compte les occurrences d'une valeur, et renvoie le classement décroissant. */
+function tally(list, keyFn){
+  const map = new Map();
+  list.forEach(d => {
+    const k = keyFn(d);
+    if (k === null || k === undefined || k === '') return;
+    map.set(k, (map.get(k) || 0) + 1);
+  });
+  return Array.from(map.entries())
+    .map(([word, count]) => ({ word, count }))
+    .sort((a,b) => b.count - a.count || a.word.localeCompare(b.word));
+}
+
+/* --- Le jour de la semaine où revient un thème --- */
+function weekdayOfTheme(theme){
+  const hits = State.dreams.filter(d => {
+    const hay = [(d.title||'').toLowerCase(), dreamText(d).toLowerCase(),
+                 (d.keywords||[]).join(' ').toLowerCase(),
+                 dreamEmotions(d).join(' ').toLowerCase()].join(' ');
+    return hay.includes(theme);
+  });
+  if (hits.length < 2) return null;
+  const counts = tally(hits, d => DAY_NAMES[dateOf(d).getDay()]);
+  counts.sort((a,b) => b.count - a.count);
+  const top = counts[0];
+  const ties = counts.filter(c => c.count === top.count).length;
+  return { day: top.word, count: top.count, total: hits.length, ties };
+}
+
+/* --- Frise des douze derniers mois --- */
+function monthlyTimeline(){
+  const now = new Date();
+  const months = [];
+  for (let i = 11; i >= 0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: d.getFullYear() + '-' + d.getMonth(), year: d.getFullYear(),
+                  month: d.getMonth(), count: 0, emotions: new Map() });
+  }
+  const index = new Map(months.map(m => [m.key, m]));
+  State.dreams.forEach(d => {
+    const dt = dateOf(d);
+    const k = dt.getFullYear() + '-' + dt.getMonth();
+    const m = index.get(k);
+    if (!m) return;
+    m.count++;
+    dreamEmotions(d).forEach(e => m.emotions.set(e, (m.emotions.get(e) || 0) + 1));
+  });
+  return months;
+}
+
+/* --- Poids des deux familles d'émotions --- */
+function familyBalance(){
+  let pos = 0, neg = 0, neutral = 0;
+  State.dreams.forEach(d => {
+    const f = orbitFamilyOf(d);
+    if (f === 'positive') pos++;
+    else if (f === 'negative') neg++;
+    else neutral++;
+  });
+  return { pos, neg, neutral };
+}
+
+/* --- Construit tout le panneau --- */
+function renderInsights(){
+  const box = $('#ins-body');
+  if (!box) return;
+
+  const n = State.dreams.length;
+  if (n < 2){
+    box.innerHTML = '<p class="ins-empty">Deux rêves suffisent pour faire apparaître vos premiers motifs. ' +
+      'Notez-en un de plus et cette section s’animera.</p>';
+    return;
+  }
+
+  const themes = tally(State.dreams.flatMap(d => d.keywords || []), k => k).slice(0, 5);
+  const emotions = tally(State.dreams, d => dreamEmotions(d)[0] || null).slice(0, 5);
+  const months = monthlyTimeline();
+  const maxMonth = Math.max(1, ...months.map(m => m.count));
+  const bal = familyBalance();
+
+  const parts = [];
+
+  /* 1. Le thème qui revient, et son jour */
+  if (themes.length){
+    const top = themes[0];
+    const day = weekdayOfTheme(top.word);
+    let phrase = 'Votre thème le plus présent est <b>' + esc(top.word) + '</b>, dans ' +
+      top.count + ' rêve' + (top.count > 1 ? 's' : '') + '.';
+    if (day && day.ties === 1){
+      phrase += ' Il revient surtout le <b>' + day.day + '</b> — ' + day.count +
+        ' fois sur ' + day.total + '.';
+    } else if (day){
+      phrase += ' Il se répartit sans jour dominant.';
+    }
+    parts.push('<div class="ins-line">' + phrase + '</div>');
+  }
+
+  /* 2. Classement des thèmes */
+  if (themes.length > 1){
+    parts.push('<div class="ins-block"><h5>Vos thèmes</h5><div class="ins-bars">' +
+      themes.map(t => bar(t.word, t.count, themes[0].count, 'var(--turquoise)')).join('') +
+      '</div></div>');
+  }
+
+  /* 3. Équilibre des deux familles */
+  parts.push('<div class="ins-block"><h5>La teinte de vos nuits</h5>' +
+    '<div class="ins-split">' +
+      '<div class="ins-half pos" style="flex:' + Math.max(1, bal.pos) + '">' +
+        '<b>' + bal.pos + '</b><span>positives</span></div>' +
+      '<div class="ins-half neg" style="flex:' + Math.max(1, bal.neg) + '">' +
+        '<b>' + bal.neg + '</b><span>négatives</span></div>' +
+      (bal.neutral ? '<div class="ins-half neu" style="flex:' + Math.max(1, bal.neutral) + '">' +
+        '<b>' + bal.neutral + '</b><span>sans émotion</span></div>' : '') +
+    '</div></div>');
+
+  /* 4. Émotions dominantes */
+  if (emotions.length > 1){
+    parts.push('<div class="ins-block"><h5>Émotions au réveil</h5><div class="ins-bars">' +
+      emotions.map(e => bar(e.word, e.count, emotions[0].count,
+        EMOTION_COLOR[e.word] || 'var(--violet)')).join('') +
+      '</div></div>');
+  }
+
+  /* 5. Frise des douze derniers mois */
+  const hasHistory = months.some(m => m.count > 0);
+  if (hasHistory){
+    parts.push('<div class="ins-block"><h5>Douze derniers mois</h5><div class="ins-timeline">' +
+      months.map(m => {
+        const h = Math.round((m.count / maxMonth) * 100);
+        const label = MONTH_NAMES[m.month].slice(0,3);
+        return '<div class="ins-month" title="' + label + ' ' + m.year + ' — ' + m.count + ' rêve(s)">' +
+          '<span class="ins-col" style="height:' + Math.max(4, h) + '%"></span>' +
+          '<span class="ins-lab">' + label + '</span></div>';
+      }).join('') +
+      '</div></div>');
+  }
+
+  box.innerHTML = parts.join('');
+}
+
+function bar(label, value, max, color){
+  const pct = Math.max(6, Math.round((value / Math.max(1, max)) * 100));
+  return '<div class="ins-bar">' +
+    '<span class="ins-key">' + esc(label) + '</span>' +
+    '<span class="ins-track"><i style="width:' + pct + '%;background:' + color + '"></i></span>' +
+    '<span class="ins-val">' + value + '</span></div>';
+}
+
+/* Échappe le texte inséré dans du HTML (titres et mots-clés viennent de l’utilisateur). */
+function esc(s){
+  return String(s || '').replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+  ));
+}
+
+/* ============================================================
    10. MEMORY
    ============================================================ */
 function matchesFilter(d){
@@ -1341,6 +1505,10 @@ function renderMemory(){
   const list = $('#dream-list');
   list.innerHTML = '';
   const items = visibleDreams();
+
+  // Les analyses portent sur TOUT l'historique, pas sur la liste filtrée :
+  // elles restent stables quand on cherche un mot précis.
+  renderInsights();
 
   const af = $('#mem-active');
   if (State.constellation){
@@ -1663,7 +1831,115 @@ function exportJSON(){
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
-  toast(State.dreams.length + ' rêve(s) exporté(s).', 'ok');
+  markBackupDone();
+  toast(State.dreams.length + ' rêve(s) sauvegardé(s) dans le fichier.', 'ok');
+}
+
+/* ---------- Export en texte lisible ---------- */
+function exportTXT(){
+  if (State.dreams.length === 0){
+    toast('Aucun rêve à exporter.', 'bad');
+    return;
+  }
+  const L = [];
+  L.push('ONEIRIA — journal de rêves');
+  L.push('Export lisible du ' + formatDateTime(nowISO()));
+  L.push(State.dreams.length + ' rêve(s)');
+  L.push('');
+  L.push('Ce fichier est fait pour être lu, imprimé ou gardé ailleurs.');
+  L.push('Pour restaurer vos rêves dans Oneiria, utilisez l’export JSON.');
+  L.push('');
+  L.push('─'.repeat(46));
+
+  State.dreams.slice().sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt))
+    .forEach(d => {
+      L.push('');
+      L.push(displayTitle(d).toUpperCase());
+      L.push(formatDateTime(d.createdAt) + '  ·  ' + (TYPES[d.type] || 'Fragment'));
+      const emos = dreamEmotions(d);
+      if (emos.length) L.push('Émotions : ' + emos.join(', '));
+      if ((d.keywords||[]).length) L.push('Mots-clés : ' + d.keywords.join(', '));
+      if (d.drawing && d.drawing.dataUrl) L.push('Un dessin est associé à ce rêve (présent dans l’export JSON).');
+      L.push('');
+      (d.fragments||[]).forEach((f, i) => {
+        if (i > 0) L.push('— fragment ajouté le ' + formatDate(f.createdAt) + ' —');
+        L.push(f.text || '(aucun texte)');
+        L.push('');
+      });
+      L.push('─'.repeat(46));
+    });
+
+  const blob = new Blob([L.join('\n')], { type:'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = tsFile().replace(/\.json$/, '.txt');
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('Copie lisible générée.', 'ok');
+}
+
+/* ---------- Rappel de sauvegarde ---------- */
+const BACKUP_KEY = 'oneiria.lastBackup';
+
+function lastBackup(){
+  try { return localStorage.getItem(BACKUP_KEY) || null; } catch(e){ return null; }
+}
+function markBackupDone(){
+  try { localStorage.setItem(BACKUP_KEY, nowISO()); } catch(e){}
+  updateBackupInfo();
+}
+function daysSinceBackup(){
+  const iso = lastBackup();
+  if (!iso) return null;
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+}
+function dreamsSinceBackup(){
+  const iso = lastBackup();
+  if (!iso) return State.dreams.length;
+  const t = new Date(iso).getTime();
+  return State.dreams.filter(d => new Date(d.createdAt).getTime() > t).length;
+}
+
+function updateBackupInfo(){
+  const el = $('#st-last-backup');
+  const st = $('#st-backup-state');
+  const days = daysSinceBackup();
+  const fresh = dreamsSinceBackup();
+
+  if (el){
+    el.textContent = lastBackup()
+      ? 'Dernier export : ' + formatDateTime(lastBackup()) + '.'
+      : 'Aucun export effectué pour l’instant.';
+  }
+  if (st){
+    if (!State.dreams.length) st.textContent = 'Aucun rêve à sauvegarder.';
+    else if (days === null) st.textContent = fresh + ' rêve(s) jamais exporté(s).';
+    else if (fresh === 0) st.textContent = 'Tout est sauvegardé. Rien de nouveau depuis ' + days + ' jour' + (days > 1 ? 's' : '') + '.';
+    else st.textContent = fresh + ' rêve(s) non sauvegardé(s) depuis ' + days + ' jour' + (days > 1 ? 's' : '') + '.';
+  }
+}
+
+/* Rappel discret à l'ouverture : jamais plus d'une fois par jour,
+   et seulement s'il y a réellement du nouveau à sauvegarder. */
+function maybeRemindBackup(){
+  if (!State.dreams.length) return;
+  const days = daysSinceBackup();
+  const fresh = dreamsSinceBackup();
+  if (fresh === 0) return;
+  if (days !== null && days < 7) return;
+
+  let lastShown = null;
+  try { lastShown = localStorage.getItem('oneiria.backupNudge'); } catch(e){}
+  const today = new Date().toDateString();
+  if (lastShown === today) return;
+  try { localStorage.setItem('oneiria.backupNudge', today); } catch(e){}
+
+  setTimeout(() => {
+    toast(fresh + ' rêve(s) non sauvegardé(s) — Réglages → Exporter une sauvegarde complète.', 'ok');
+  }, 2600);
 }
 
 function normalizeImported(raw){
@@ -1954,9 +2230,20 @@ function wire(){
   });
 
   // Réglages
-  $('#btn-settings').addEventListener('click', () => { openSheet('sheet-settings'); updateStorageInfo(); });
+  $('#btn-settings').addEventListener('click', () => {
+    openSheet('sheet-settings');
+    updateStorageInfo();
+    updateBackupInfo();
+  });
   $('#st-close').addEventListener('click', () => closeSheet('sheet-settings'));
   $('#st-export').addEventListener('click', exportJSON);
+  const stTxt = $('#st-export-txt');
+  if (stTxt) stTxt.addEventListener('click', exportTXT);
+  const stNow = $('#st-backup-now');
+  if (stNow) stNow.addEventListener('click', () => {
+    markBackupDone();
+    toast('Sauvegarde marquée comme à jour.', 'ok');
+  });
   $('#st-import').addEventListener('click', () => $('#st-file').click());
   $('#st-file').addEventListener('change', async (e) => {
     const f = e.target.files && e.target.files[0];
@@ -2124,6 +2411,9 @@ async function boot(){
   wire();
   go('univers');
   initSky();      // APRÈS l'affichage de la vue : le canvas a de vraies dimensions
+
+  updateBackupInfo();
+  maybeRemindBackup();
 
   // Introduction : au premier lancement seulement. Jamais réaffichée ensuite.
   wireIntro();

@@ -217,6 +217,15 @@
       <button type="button" class="link-btn" id="mem-active-clear">retirer</button>
     </div>
 
+    <!-- ===== ANALYSES DANS LE TEMPS ===== -->
+    <details class="insights" id="insights">
+      <summary>
+        <span class="ins-title">Vos motifs dans le temps</span>
+        <span class="ins-hint">ce que vos nuits racontent</span>
+      </summary>
+      <div class="ins-body" id="ins-body"></div>
+    </details>
+
     <div class="dream-list" id="dream-list"></div>
   </section>
 
@@ -370,13 +379,24 @@
   </div>
 
   <div class="settings-block">
-    <h4>Sauvegarde manuelle</h4>
-    <p>Exportez régulièrement un fichier JSON : il contient tous vos fragments et vos dessins.</p>
+    <h4>Sauvegarde</h4>
+    <p>L’export JSON contient <strong>tout</strong> : récits, dessins, émotions, mots-clés. Un fichier suffit à tout restaurer sur un autre appareil.</p>
     <div class="settings-actions">
-      <button class="btn subtle" id="st-export" type="button">Exporter en JSON</button>
-      <button class="btn subtle" id="st-import" type="button">Importer un fichier JSON</button>
-      <input type="file" id="st-file" accept="application/json,.json" hidden>
+      <button class="btn primary" id="st-export" type="button">Exporter une sauvegarde complète</button>
+      <button class="btn subtle" id="st-export-txt" type="button">Exporter en texte lisible</button>
+      <button class="btn subtle" id="st-import" type="button">Restaurer une sauvegarde</button>
+      <input type="file" id="st-file" accept="application/json,.json,text/plain,.txt" hidden>
     </div>
+    <p class="tiny" id="st-last-backup">Aucun export effectué pour l’instant.</p>
+  </div>
+
+  <div class="settings-block">
+    <h4>Sauvegarde automatique</h4>
+    <p>Rappel discret quand vos rêves récents ne sont <strong>plus sauvegardés</strong> ailleurs. Oneiria ne peut pas écrire à votre place : le rappel apparaît à l’ouverture.</p>
+    <div class="settings-actions">
+      <button class="btn subtle" id="st-backup-now" type="button">Marquer comme sauvegardé aujourd’hui</button>
+    </div>
+    <p class="tiny" id="st-backup-state"></p>
   </div>
 
   <div class="settings-block">

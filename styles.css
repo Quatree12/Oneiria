@@ -393,6 +393,84 @@ textarea{resize:vertical;line-height:1.62;min-height:120px}
 .dc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .dc-title{margin:0;font-size:16px;font-weight:600;line-height:1.3;letter-spacing:.005em}
 .dc-date{flex:0 0 auto;font-size:10.5px;color:var(--ink-4);padding-top:3px;white-space:nowrap}
+/* ============================================================
+   ANALYSES DANS LE TEMPS
+   ============================================================ */
+.insights{
+  margin:4px 0 14px;border-radius:var(--radius-m);
+  border:1px solid var(--line-soft);
+  background:linear-gradient(158deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  overflow:hidden;
+}
+.insights summary{
+  display:flex;flex-direction:column;gap:3px;
+  padding:14px 15px;cursor:pointer;list-style:none;
+}
+.insights summary::-webkit-details-marker{display:none}
+.ins-title{
+  display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;color:var(--ink-1);
+}
+.ins-title::before{
+  content:"›";font-size:17px;color:var(--turquoise);display:inline-block;line-height:1;
+  transition:transform .24s cubic-bezier(.2,.8,.3,1);
+}
+.insights[open] .ins-title::before{transform:rotate(90deg)}
+.ins-hint{font-size:11.5px;color:var(--ink-4);padding-left:25px}
+.ins-body{padding:0 15px 16px;animation:viewIn .34s cubic-bezier(.22,.9,.3,1) both}
+.ins-empty{margin:0;font-size:12.5px;line-height:1.65;color:var(--ink-3)}
+.ins-line{
+  margin:0 0 14px;padding:12px 13px;border-radius:var(--radius-s);
+  background:rgba(169,154,255,.09);border:1px solid rgba(169,154,255,.22);
+  font-size:13px;line-height:1.62;color:var(--ink-2);
+}
+.ins-line b{color:var(--pearl);font-weight:600}
+.ins-block{margin-bottom:16px}
+.ins-block:last-child{margin-bottom:0}
+.ins-block h5{
+  margin:0 0 9px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-4);font-weight:600;
+}
+
+/* Barres horizontales : thèmes et émotions */
+.ins-bars{display:flex;flex-direction:column;gap:7px}
+.ins-bar{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.ins-key{
+  flex:0 0 34%;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ins-track{
+  flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;
+}
+.ins-track i{display:block;height:100%;border-radius:99px;opacity:.8}
+.ins-val{flex:0 0 auto;font-size:11px;color:var(--ink-4);min-width:16px;text-align:right}
+
+/* Répartition des deux familles d'émotions */
+.ins-split{display:flex;gap:5px;height:54px}
+.ins-half{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border-radius:var(--radius-s);min-width:52px;
+  border:1px solid var(--line-soft);
+}
+.ins-half b{font-size:16px;font-weight:600}
+.ins-half span{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.ins-half.pos{color:var(--violet);background:linear-gradient(150deg,rgba(169,154,255,.20),rgba(128,229,223,.10))}
+.ins-half.neg{color:var(--rose);background:linear-gradient(150deg,rgba(108,140,255,.18),rgba(242,182,216,.14))}
+.ins-half.neu{color:var(--ink-2);background:rgba(255,255,255,.05)}
+.ins-half span{color:inherit;opacity:.72}
+
+/* Frise des douze mois */
+.ins-timeline{display:flex;align-items:flex-end;gap:4px;height:76px}
+.ins-month{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  gap:5px;height:100%;
+}
+.ins-col{
+  width:100%;max-width:22px;border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg,var(--turquoise),var(--violet));
+  opacity:.72;
+}
+.ins-lab{font-size:8.5px;letter-spacing:.02em;color:var(--ink-4);white-space:nowrap}
+
 .dc-badges{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 0}
 .badge{
   font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:4px 9px;border-radius:999px;

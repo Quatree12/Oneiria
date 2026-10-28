@@ -953,9 +953,9 @@ function skipDrawing(){
   if (State.view !== 'univers') go('univers'); else renderUnivers();
 }
 
-function refreshAfterDreamChange(){
-  renderUnivers();
-  if (State.view === 'memory') renderMemory();
+  refreshAfterDreamChange();
+  go('univers');
+}
   if (State.currentDreamId && !$('#sheet-dream').hidden) openDream(State.currentDreamId);
 }
 

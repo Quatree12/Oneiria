@@ -393,6 +393,14 @@
     <p>Aucune analytics, aucune publicité, aucun envoi de vos rêves à un service externe. La dictée utilise la reconnaissance vocale du navigateur lorsque celle-ci est disponible — selon le navigateur, la voix peut alors être traitée par le service du fournisseur (Apple, Google). Oneiria ne l’enregistre pas.</p>
   </div>
 
+  <div class="settings-block">
+    <h4>Introduction</h4>
+    <p>La présentation affichée au premier lancement : les trois gestes de Oneiria et la promesse de confidentialité. Elle ne réapparaît jamais toute seule.</p>
+    <div class="settings-actions">
+      <button class="btn subtle" id="st-intro" type="button">Revoir l’introduction</button>
+    </div>
+  </div>
+
   <div class="settings-block danger-zone">
     <h4>Zone sensible</h4>
     <p>La suppression est définitive et immédiate. Pensez à exporter avant.</p>
@@ -411,6 +419,49 @@
       <button class="btn ghost" id="dlg-cancel" type="button">Annuler</button>
       <button class="btn primary" id="dlg-ok" type="button">Confirmer</button>
     </div>
+  </div>
+</section>
+
+<!-- ============ INTRODUCTION (premier lancement) ============ -->
+<section class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="intro-t1" hidden>
+  <button class="intro-skip" id="intro-skip" type="button">Passer</button>
+
+  <div class="intro-track" id="intro-track">
+
+    <article class="intro-slide" data-slide="0">
+      <div class="intro-art" aria-hidden="true">
+        <span class="ia-orb"></span>
+        <span class="ia-ring"></span>
+      </div>
+      <h2 id="intro-t1">Vos rêves restent ici.</h2>
+      <p>Aucun compte, aucun serveur, aucune analytics. Tout est enregistré dans le navigateur de cet appareil — et rien ne sort de votre téléphone.</p>
+    </article>
+
+    <article class="intro-slide" data-slide="1">
+      <div class="intro-art steps" aria-hidden="true">
+        <span><svg viewBox="0 0 24 24"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/></svg></span>
+        <span><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></span>
+        <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="9.5" ry="3.6" transform="rotate(-22 12 12)"/></svg></span>
+      </div>
+      <h2>Écrire. Dessiner. Retrouver.</h2>
+      <p>Notez un rêve ou dictez-le. Donnez-lui une forme au doigt. Puis laissez vos thèmes dessiner des constellations, et chaque rêve allumer un satellite dans votre ciel.</p>
+    </article>
+
+    <article class="intro-slide" data-slide="2">
+      <div class="intro-art alone" aria-hidden="true">
+        <span class="ia-small a"></span>
+        <span class="ia-small b"></span>
+        <span class="ia-small c"></span>
+      </div>
+      <h2>Un fragment suffit.</h2>
+      <p>Même « Rêve oublié » compte. Commencez par une phrase, ce soir — le reste viendra avec les nuits.</p>
+    </article>
+
+  </div>
+
+  <div class="intro-foot">
+    <div class="intro-dots" id="intro-dots" role="tablist" aria-label="Étapes de l’introduction"></div>
+    <button class="btn primary" id="intro-next" type="button">Continuer</button>
   </div>
 </section>
 

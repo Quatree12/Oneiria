@@ -391,7 +391,7 @@ function hexAlpha(hex, a){
 }
 
 /* Rayon de référence, commun à la sphère et aux orbites. */
-function skyBase(){ return Math.min(Sky.w, Sky.h) * 0.46; }
+function skyBase(){ return Math.min(Sky.w, Sky.h) * 0.47; }
 
 function initSky(){
   const c = $('#orb-canvas');
@@ -485,10 +485,10 @@ function drawSky(){
   ctx.beginPath(); ctx.arc(cx, cy, B, 0, Math.PI*2); ctx.fill();
 
   /* --- Orbites --- */
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 0.8;
   if (Sky.dots.length){
     Sky.dots.forEach(s => {
-      ctx.strokeStyle = hexAlpha(s.color, 0.15);
+      ctx.strokeStyle = hexAlpha(s.color, 0.12);
       ctx.beginPath();
       ctx.ellipse(cx, cy, s.rx, s.ry, 0, 0, Math.PI*2);
       ctx.stroke();
@@ -505,7 +505,7 @@ function drawSky(){
   }
 
   /* --- La sphère centrale --- */
-  const R = B * 0.62 * pulse;
+  const R = B * 0.50 * pulse;
   const g = ctx.createRadialGradient(cx - R*0.34, cy - R*0.38, R*0.06, cx, cy, R);
   g.addColorStop(0,    '#FFFFFF');
   g.addColorStop(0.18, 'rgba(247,244,255,.92)');
@@ -1134,9 +1134,18 @@ function openDrawSheet(dreamId, fresh){
   $('#ds-pen').setAttribute('aria-pressed','true');
   $('#ds-eraser').setAttribute('aria-pressed','false');
   $('#canvas-hint').classList.toggle('gone', Draw.strokes.length > 0);
-  $('#ds-sub').textContent = fresh
-    ? 'Le dessin sera lié à « ' + displayTitle(d) + ' ». Vous pouvez aussi passer cette étape.'
-    : 'Dessin de « ' + displayTitle(d) + ' » — modifiez-le ou gardez-le tel quel.';
+
+  // Rêve guidé : au tout premier dessin, on explique au lieu de laisser un vide
+  const firstTime = !drawSeen();
+  $('#canvas-hint').textContent = firstTime
+    ? 'Dessinez avec le doigt — ou passez, le rêve est déjà enregistré.'
+    : 'Dessine avec le doigt.';
+  $('#ds-sub').textContent = (fresh && firstTime)
+    ? 'Tracez ce que vous avez vu, même une forme, une couleur. Ce dessin restera attaché à ce rêve.'
+    : fresh
+      ? 'Le dessin sera lié à « ' + displayTitle(d) + ' ». Vous pouvez aussi passer cette étape.'
+      : 'Dessin de « ' + displayTitle(d) + ' » — modifiez-le ou gardez-le tel quel.';
+  $('#ds-skip').textContent = firstTime ? 'Passer — le rêve est gardé' : 'Passer le dessin';
   closeAllSheets();
   openSheet('sheet-dessine');
   requestAnimationFrame(() => { resizeCanvas(); redraw(); });
@@ -1160,8 +1169,10 @@ async function saveDrawing(){
   await saveDream(d);
   closeSheet('sheet-dessine');
   toast('Dessin gardé et associé au rêve.', 'ok');
+  markDrawSeen();
   refreshAfterDreamChange();
   go('univers');
+  explainSkyIfFirst();
 }
 
 function renderPNG(w, h){
@@ -1201,7 +1212,20 @@ function skipDrawing(){
   const id = State.drawingDreamId;
   closeSheet('sheet-dessine');
   toast(id ? 'Dessin passé. Le rêve est conservé.' : 'Dessin passé.');
+  markDrawSeen();
   go('univers');
+  explainSkyIfFirst();
+}
+
+/* Rêve guidé : la première fois qu'un satellite apparaît, on explique le ciel.
+   Une seule fois — jamais réaffiché ensuite. */
+function explainSkyIfFirst(){
+  if (skyExplained()) return;
+  if (!State.dreams.length) return;
+  markSkyExplained();
+  setTimeout(() => {
+    toast('Votre premier satellite est en orbite. Chaque rêve allume le sien — touchez-le pour le rouvrir.', 'ok');
+  }, 900);
 }
 
 function refreshAfterDreamChange(){
@@ -1873,6 +1897,13 @@ function wire(){
   });
   $('#st-wipe').addEventListener('click', wipeAll);
 
+  // Introduction : accessible depuis les réglages, à la demande
+  const stIntro = $('#st-intro');
+  if (stIntro) stIntro.addEventListener('click', () => {
+    closeSheet('sheet-settings');
+    setTimeout(openIntro, 180);
+  });
+
   // Feuilles
   $('#sheet-backdrop').addEventListener('click', () => {
     if (!$('#sheet-dessine').hidden) skipDrawing();
@@ -1892,6 +1923,124 @@ function wire(){
 }
 
 /* ============================================================
+   INTRODUCTION — trois écrans, au premier lancement uniquement.
+   On peut la revoir depuis les réglages, jamais autrement.
+   ============================================================ */
+const INTRO_KEY = 'oneiria.introSeen';
+const DRAW_KEY  = 'oneiria.drawSeen';
+const SKY_KEY   = 'oneiria.skyExplained';
+let introIndex = 0;
+
+/* Vrai si l'utilisateur a déjà ouvert l'écran Dessine au moins une fois. */
+function drawSeen(){
+  try { return localStorage.getItem(DRAW_KEY) === '1'; } catch(e){ return false; }
+}
+function markDrawSeen(){
+  try { localStorage.setItem(DRAW_KEY, '1'); } catch(e){}
+}
+
+/* Vrai si l'on a déjà expliqué le ciel (premier satellite en orbite). */
+function skyExplained(){
+  try { return localStorage.getItem(SKY_KEY) === '1'; } catch(e){ return false; }
+}
+function markSkyExplained(){
+  try { localStorage.setItem(SKY_KEY, '1'); } catch(e){}
+}
+
+function introSlides(){ return $$('#intro-track .intro-slide'); }
+
+function introSeen(){
+  try { return localStorage.getItem(INTRO_KEY) === '1'; } catch(e){ return false; }
+}
+function markIntroSeen(){
+  try { localStorage.setItem(INTRO_KEY, '1'); } catch(e){}
+}
+
+function buildIntroDots(){
+  const box = $('#intro-dots');
+  if (!box) return;
+  box.innerHTML = '';
+  introSlides().forEach((_, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label','Étape ' + (i + 1));
+    b.addEventListener('click', () => goIntro(i));
+    box.appendChild(b);
+  });
+  paintIntroDots();
+}
+
+function paintIntroDots(){
+  $$('#intro-dots button').forEach((b, i) => {
+    const on = i === introIndex;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const last = introIndex >= introSlides().length - 1;
+  $('#intro-next').textContent = last ? 'Écrire mon premier rêve' : 'Continuer';
+  $('#intro-skip').hidden = last;
+}
+
+function goIntro(i){
+  const slides = introSlides();
+  if (!slides.length) return;
+  introIndex = Math.max(0, Math.min(slides.length - 1, i));
+  const track = $('#intro-track');
+  track.style.transform = 'translate3d(' + (-introIndex * 100) + '%,0,0)';
+  paintIntroDots();
+}
+
+function openIntro(){
+  introIndex = 0;
+  $('#intro').hidden = false;
+  document.body.classList.add('locked');
+  buildIntroDots();
+  requestAnimationFrame(() => goIntro(0));
+}
+
+function closeIntro(goToRaccontes){
+  $('#intro').hidden = true;
+  document.body.classList.remove('locked');
+  markIntroSeen();
+  if (goToRaccontes) go('raccontes');
+}
+
+function wireIntro(){
+  const next = $('#intro-next');
+  if (!next) return;
+  next.addEventListener('click', () => {
+    const last = introIndex >= introSlides().length - 1;
+    if (last) closeIntro(true);
+    else goIntro(introIndex + 1);
+  });
+  $('#intro-skip').addEventListener('click', () => closeIntro(false));
+
+  // Glissement horizontal pour passer d'un écran au suivant
+  const track = $('#intro-track');
+  let x0 = null, y0 = null;
+  track.addEventListener('touchstart', (e) => {
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive:true });
+  track.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 46 && Math.abs(dx) > Math.abs(dy)){
+      goIntro(introIndex + (dx < 0 ? 1 : -1));
+    }
+    x0 = y0 = null;
+  }, { passive:true });
+
+  document.addEventListener('keydown', (e) => {
+    if ($('#intro').hidden) return;
+    if (e.key === 'ArrowRight') goIntro(introIndex + 1);
+    if (e.key === 'ArrowLeft') goIntro(introIndex - 1);
+    if (e.key === 'Escape') closeIntro(false);
+  });
+}
+
+/* ============================================================
    16. DÉMARRAGE
    ============================================================ */
 async function boot(){
@@ -1907,6 +2056,12 @@ async function boot(){
   wire();
   go('univers');
   initSky();      // APRÈS l'affichage de la vue : le canvas a de vraies dimensions
+
+  // Introduction : au premier lancement seulement. Jamais réaffichée ensuite.
+  wireIntro();
+  if (!introSeen()){
+    setTimeout(openIntro, 420);   // laisse le ciel se dessiner une fois avant
+  }
 
   if (Store.mode === 'mem'){
     toast('Stockage local indisponible : les rêves de cette session ne seront pas conservés après fermeture.', 'bad');

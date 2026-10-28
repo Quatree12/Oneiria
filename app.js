@@ -17,6 +17,7 @@ const EMOTION_COLOR = {
   'Confusion':'#F2B6D8','Peur':'#8FA0FF','Mélancolie':'#C6B7FF','Curiosité':'#7FD7E8'
 };
 const TYPES = { ecrit:'Écrit', raconte:'Raconté', oublie:'Oublié' };
+const FILTER_LABEL = { tous:'Tous', ecrit:'Écrits', raconte:'Racontés', oublie:'Oubliés', dessin:'Avec dessin' };
 
 const PALETTE = [
   { c:'#A99AFF', n:'Violet' },
@@ -1532,21 +1533,46 @@ function renderMemory(){
   // elles restent stables quand on cherche un mot précis.
   renderInsights();
 
+  // Une chaîne vide n'est pas un thème : on teste la valeur, pas son existence.
   const af = $('#mem-active');
-  if (State.constellation){
+  const theme = String(State.constellation || '').trim();
+  if (theme){
     af.hidden = false;
-    $('#mem-active-label').textContent = 'Thème : ' + State.constellation;
-  } else af.hidden = true;
+    $('#mem-active-label').textContent = 'Thème : ' + theme;
+  } else {
+    af.hidden = true;
+    State.constellation = null;
+  }
 
   if (items.length === 0){
     const empty = document.createElement('div');
     empty.className = 'empty';
-    const anyDreams = State.dreams.length > 0;
-    empty.innerHTML = anyDreams
-      ? '<h4>Aucun rêve ne correspond</h4><p>Essayez un autre mot, un autre filtre, ou retirez le thème actif.</p>' +
-        '<button class="btn ghost" id="mem-reset" type="button">Réinitialiser les filtres</button>'
-      : '<h4>Votre archive est vide</h4><p>Le premier fragment peut être un rêve entier, ou simplement « Rêve oublié ».</p>' +
+
+    if (State.dreams.length === 0){
+      // Aucun rêve du tout : on invite simplement à commencer.
+      empty.innerHTML = '<h4>Votre archive est vide</h4>' +
+        '<p>Le premier fragment peut être un rêve entier, ou simplement « Rêve oublié ».</p>' +
         '<button class="btn primary" id="mem-first" type="button">Écrire un premier rêve</button>';
+    } else {
+      // Il y a des rêves : le message nomme la cause exacte du vide.
+      const causes = [];
+      if (State.search.trim()) causes.push('la recherche « ' + esc(State.search.trim()) + ' »');
+      if (State.filter !== 'tous') causes.push('le filtre « ' + (FILTER_LABEL[State.filter] || State.filter) + ' »');
+      if (State.constellation) causes.push('le thème « ' + esc(State.constellation) + ' »');
+
+      const many = causes.length > 1;
+      const title = many
+        ? 'Aucun rêve ne réunit ' + causes.slice(0, -1).join(', ') + ' et ' + causes[causes.length-1]
+        : 'Aucun rêve ne correspond à ' + (causes[0] || 'ces critères');
+
+      empty.innerHTML = '<h4>' + title + '</h4>' +
+        '<p>' + (many
+          ? 'Ces conditions ensemble ne laissent rien passer. Retirez-en une et la liste réapparaîtra.'
+          : 'Essayez un autre mot, ou retirez la condition active.') +
+        '</p>' +
+        '<button class="btn ghost" id="mem-reset" type="button">Réinitialiser les filtres</button>';
+    }
+
     list.appendChild(empty);
     const r = $('#mem-reset');
     if (r) r.addEventListener('click', () => { clearMemoryFilters(); });

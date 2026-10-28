@@ -275,3 +275,205 @@ body.locked{overflow:hidden}
 }
 .empty h4{margin:0 0 6px;font-family:var(--serif);font-size:17px;font-weight:400;color:var(--ink-1)}
 .empty p{margin:0 0 14px;font-size:12.5px;line-height:1.6;color:var(--ink-3)}
+/* ---------- Derniers fragments ---------- */
+.recent{display:flex;flex-direction:column;gap:10px}
+.mini{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+  padding:12px 13px;border-radius:var(--radius-m);
+  border:1px solid var(--line-soft);background:rgba(255,255,255,.045);
+  color:var(--ink-1);font-family:var(--font);
+  transition:transform .2s,border-color .2s;
+}
+.mini:active{transform:scale(.985);border-color:rgba(169,154,255,.4)}
+.mini-thumb{flex:0 0 auto;width:42px;height:42px;border-radius:12px;overflow:hidden;border:1px solid var(--line-soft);background:rgba(255,255,255,.05);display:grid;place-items:center;color:var(--violet)}
+.mini-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mini-thumb svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.mini-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.mini-body strong{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-body span{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-date{font-size:10.5px;color:var(--ink-4);flex:0 0 auto}
+
+/* ---------- Titres de vue ---------- */
+.view-head{padding:6px 4px 0;margin-bottom:18px}
+.eyebrow{margin:0 0 6px;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-4)}
+.view-title{
+  margin:0;font-family:var(--serif);font-size:27px;font-weight:400;line-height:1.2;
+  background:linear-gradient(112deg,var(--pearl),var(--violet) 72%,var(--turquoise));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.view-sub{margin:9px 0 0;font-size:13px;line-height:1.6;color:var(--ink-3);max-width:36ch}
+.view-head.compact{margin-bottom:14px}
+
+/* ---------- Formulaires ---------- */
+.glass-form{
+  padding:16px;border-radius:var(--radius-l);
+  border:1px solid var(--line-soft);
+  background:linear-gradient(155deg,rgba(255,255,255,.075),rgba(255,255,255,.026));
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  box-shadow:var(--shadow);
+}
+.field{display:block;margin-bottom:16px;border:none;padding:0}
+.field-label{display:block;font-size:12px;letter-spacing:.03em;color:var(--ink-2);margin-bottom:8px;padding:0}
+.field-label em{font-style:normal;color:var(--ink-4);font-size:11px}
+input[type=text],input[type=search],textarea{
+  width:100%;font-family:var(--font);font-size:16px;color:var(--ink-1);
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line-soft);border-radius:var(--radius-s);
+  padding:13px 14px;outline:none;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+  -webkit-appearance:none;appearance:none;
+}
+input::placeholder,textarea::placeholder{color:var(--ink-4)}
+input:focus,textarea:focus{border-color:rgba(169,154,255,.6);background:rgba(255,255,255,.075);box-shadow:0 0 0 3px rgba(169,154,255,.14)}
+textarea{resize:vertical;line-height:1.62;min-height:120px}
+.counter{display:block;margin-top:6px;font-size:11px;color:var(--ink-4);text-align:right}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  padding:9px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-family:var(--font);
+  border:1px solid var(--line-soft);background:rgba(255,255,255,.045);color:var(--ink-2);
+  transition:all .2s cubic-bezier(.2,.8,.3,1);
+}
+.chip:active{transform:scale(.95)}
+.chip.on{
+  color:#0A0A16;font-weight:600;border-color:transparent;
+  background:linear-gradient(120deg,var(--violet),var(--turquoise));
+  box-shadow:0 6px 20px -8px rgba(169,154,255,.9);
+}
+
+/* ---------- Émotions : sélection multiple ---------- */
+.chips-multi{max-height:none}
+.chips-multi .chip{position:relative}
+.chips-multi .chip.on::after{
+  content:"✓";margin-left:7px;font-size:11px;font-weight:700;
+  display:inline-block;line-height:1;
+}
+
+.form-actions{display:flex;gap:10px;margin-top:4px}
+.btn{
+  flex:1;min-height:50px;padding:14px 16px;border-radius:var(--radius-s);cursor:pointer;
+  font-family:var(--font);font-size:15px;font-weight:600;letter-spacing:.01em;
+  border:1px solid var(--line);background:var(--glass);color:var(--ink-1);
+  transition:transform .2s cubic-bezier(.2,.8,.3,1),opacity .2s,box-shadow .2s;
+}
+.btn:active{transform:scale(.97)}
+.btn.primary{
+  border-color:transparent;color:#08080F;
+  background:linear-gradient(118deg,var(--violet),var(--turquoise));
+  box-shadow:0 10px 30px -12px rgba(169,154,255,.95);
+}
+.btn.ghost{background:rgba(255,255,255,.045)}
+.btn.subtle{font-size:13.5px;font-weight:500;min-height:44px;background:rgba(255,255,255,.05)}
+.btn.danger-ghost{color:#FFB4CE;border-color:rgba(255,140,180,.34);background:rgba(255,90,150,.07)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.form-hint{margin:12px 0 0;font-size:12.5px;line-height:1.55;color:var(--rose);padding:10px 12px;border-radius:var(--radius-s);background:rgba(242,182,216,.09);border:1px solid rgba(242,182,216,.24)}
+
+/* ---------- Décrit : micro ---------- */
+.mic-stage{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:24px 16px 26px;margin-bottom:18px;border-radius:var(--radius-l);
+  border:1px solid var(--line-soft);
+  background:radial-gradient(circle at 50% 30%,rgba(169,154,255,.10),rgba(255,255,255,.03) 70%);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+}
+.mic-btn{
+  position:relative;width:112px;height:112px;border-radius:50%;cursor:pointer;
+  display:grid;place-items:center;color:var(--pearl);
+  border:1px solid rgba(169,154,255,.42);
+  background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.24),rgba(169,154,255,.30) 46%,rgba(11,11,24,.6));
+  box-shadow:0 0 44px -10px rgba(169,154,255,.8),inset 0 0 26px rgba(255,255,255,.16);
+  transition:transform .25s cubic-bezier(.2,.8,.3,1);
+}
+.mic-btn:active{transform:scale(.94)}
+.mic-btn svg{width:42px;height:42px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;position:relative;z-index:2}
+.mic-btn.live{border-color:rgba(128,229,223,.7);box-shadow:0 0 54px -6px rgba(128,229,223,.85),inset 0 0 30px rgba(128,229,223,.22)}
+.mic-rings{position:absolute;inset:0;border-radius:50%;pointer-events:none}
+.mic-rings i{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(169,154,255,.4);opacity:0;animation:ripple 3.2s ease-out infinite}
+.mic-rings i:nth-child(2){animation-delay:1.05s}
+.mic-rings i:nth-child(3){animation-delay:2.1s}
+.mic-btn.live .mic-rings i{border-color:rgba(128,229,223,.55)}
+@keyframes ripple{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.7);opacity:0}}
+.mic-state{font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.mic-btn.live ~ .mic-state{color:var(--turquoise)}
+.mic-help{max-width:36ch;text-align:center;font-size:12px;line-height:1.6;color:var(--ink-4)}
+.mic-help.warn{color:var(--rose)}
+.mic-help b{color:var(--ink-2);font-weight:600}
+
+/* ---------- Encart dépliant (dictée clavier iOS) ---------- */
+.wave-note{
+  margin:0 0 18px;border-radius:var(--radius-m);
+  border:1px solid var(--line-soft);background:rgba(255,255,255,.04);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  overflow:hidden;
+}
+.wave-note summary{
+  padding:14px 15px;cursor:pointer;font-size:13px;color:var(--ink-2);
+  list-style:none;display:flex;align-items:center;gap:9px;
+}
+.wave-note summary::-webkit-details-marker{display:none}
+.wave-note summary::before{
+  content:"›";font-size:17px;color:var(--violet);transition:transform .24s cubic-bezier(.2,.8,.3,1);
+  display:inline-block;line-height:1;
+}
+.wave-note[open] summary::before{transform:rotate(90deg)}
+.wave-note[open] summary{color:var(--ink-1)}
+.wave-note p{margin:0;padding:0 15px 15px;font-size:12.5px;line-height:1.68;color:var(--ink-3)}
+
+/* ---------- Memory : outils ---------- */
+.memory-tools{position:sticky;top:calc(62px + env(safe-area-inset-top,0px));z-index:20;padding:8px 0 10px;background:linear-gradient(180deg,rgba(9,10,22,.9),rgba(9,10,22,.55) 72%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.search-wrap{display:flex;align-items:center;gap:9px;padding:0 12px;border-radius:var(--radius-s);border:1px solid var(--line-soft);background:rgba(255,255,255,.055);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.search-wrap svg{flex:0 0 auto;width:17px;height:17px;fill:none;stroke:var(--ink-4);stroke-width:1.7;stroke-linecap:round}
+.search-wrap input{border:none;background:none;padding:13px 0;flex:1}
+.search-wrap input:focus{box-shadow:none;background:none}
+.clear-search{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:var(--ink-2);font-size:16px;line-height:1;cursor:pointer}
+.filters{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.fchip{
+  flex:0 0 auto;padding:8px 15px;border-radius:999px;cursor:pointer;font-family:var(--font);font-size:13px;
+  border:1px solid var(--line-soft);background:rgba(255,255,255,.04);color:var(--ink-3);
+  transition:all .22s cubic-bezier(.2,.8,.3,1);
+}
+.fchip:active{transform:scale(.95)}
+.fchip.active{
+  color:#08080F;font-weight:600;border-color:transparent;
+  background:linear-gradient(120deg,var(--violet),var(--turquoise));
+  box-shadow:0 6px 18px -9px rgba(169,154,255,.95);
+}
+.active-filter{display:flex;align-items:center;gap:8px;margin:0 2px 12px;font-size:12.5px;color:var(--ink-2)}
+.active-filter span{padding:5px 11px;border-radius:999px;background:rgba(169,154,255,.16);border:1px solid rgba(169,154,255,.3)}
+
+/* ---------- Cartes de rêves ---------- */
+.dream-list{display:flex;flex-direction:column;gap:12px}
+.dream-card{
+  position:relative;overflow:hidden;cursor:pointer;text-align:left;width:100%;
+  padding:15px 15px 14px;border-radius:var(--radius-l);
+  border:1px solid var(--line-soft);
+  background:linear-gradient(150deg,rgba(255,255,255,.075),rgba(255,255,255,.024));
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  color:var(--ink-1);font-family:var(--font);box-shadow:var(--shadow);
+  transition:transform .22s cubic-bezier(.2,.8,.3,1),border-color .22s;
+  animation:cardIn .38s cubic-bezier(.22,.9,.3,1) both;
+}
+.dream-card:active{transform:scale(.985);border-color:rgba(169,154,255,.45)}
+@keyframes cardIn{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
+.dc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dc-title{margin:0;font-size:16px;font-weight:600;line-height:1.3;letter-spacing:.005em}
+.dc-date{flex:0 0 auto;font-size:10.5px;color:var(--ink-4);padding-top:3px;white-space:nowrap}
+.dc-badges{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 0}
+.badge{
+  font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:4px 9px;border-radius:999px;
+  border:1px solid var(--line-soft);background:rgba(255,255,255,.05);color:var(--ink-3);
+}
+.badge.ecrit{color:var(--violet);border-color:rgba(169,154,255,.34)}
+.badge.raconte{color:var(--turquoise);border-color:rgba(128,229,223,.34)}
+.badge.oublie{color:var(--rose);border-color:rgba(242,182,216,.34)}
+.badge.dessin{color:var(--pearl);border-color:rgba(255,255,255,.28)}
+.badge.emo{color:var(--ink-2)}
+.dc-excerpt{margin:10px 0 0;font-size:13.5px;line-height:1.62;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.dc-foot{display:flex;align-items:center;gap:10px;margin-top:11px}
+.dc-thumb{width:52px;height:52px;border-radius:12px;overflow:hidden;border:1px solid var(--line-soft);background:rgba(255,255,255,.05);flex:0 0 auto}
+.dc-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.dc-tags{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.tag{font-size:11.5px;color:var(--turquoise);opacity:.9}
+.tag::before{content:"#"}
+.dc-nfrag{font-size:11px;color:var(--ink-4);margin-left:auto;flex:0 0 auto}

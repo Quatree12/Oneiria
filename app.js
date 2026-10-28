@@ -366,6 +366,67 @@ window.OneiriaGo = go;
 /* ============================================================
    6. UNIVERS
    ============================================================ */
+/* Chaque rêve enregistré devient un satellite en orbite.
+   Couleur : tirée de la première émotion du rêve, sinon de son identifiant.
+   Inclinaison, rayon, vitesse et point de départ sont dérivés de l'identifiant :
+   un même rêve garde toujours la même place dans le ciel. */
+const SAT_COLORS = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
+  '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
+
+function hashOf(str){
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function buildOrbits(){
+  const box = $('#orb-orbits');
+  if (!box) return;
+  const dreams = State.dreams.slice(0, 24);   // au-delà, le ciel deviendrait illisible
+  box.innerHTML = '';
+
+  // Ciel vide : trois pistes décoratives, sans satellite
+  if (dreams.length === 0){
+    [0,1,2].forEach(i => {
+      const ring = document.createElement('div');
+      ring.className = 'orb-ring empty r' + (i + 1);
+      box.appendChild(ring);
+    });
+    return;
+  }
+
+  dreams.forEach((d, i) => {
+    const h = hashOf(d.id);
+
+    // Répartition en couches : les rêves se répartissent sur des anneaux
+    // de rayons différents plutôt que de s'empiler sur la même piste.
+    const layer = i % 4;                       // 0..3
+    const inset = 26 - layer * 6;              // 26% → 8% : plus le rêve est récent, plus l'orbite est large
+    const tilt   = -78 + (h % 156);            // -78° → +78°
+    const squash = 0.30 + ((h >> 4) % 40) / 100;   // 0.30 → 0.69 : aplatissement de l'ellipse
+    const dur    = 16 + ((h >> 8) % 26);       // 16s → 42s : un tour complet
+    const delay  = -((h >> 12) % dur);         // départ décalé, pour éviter l'alignement
+    const start  = (h >> 16) % 360;            // position initiale sur la piste
+
+    const ring = document.createElement('div');
+    ring.className = 'orb-ring sat' + (i % 2 ? ' rev' : '');
+    ring.style.inset = inset + '%';
+    ring.style.setProperty('--tilt', tilt + 'deg');
+    ring.style.setProperty('--squash', squash);
+    ring.style.setProperty('--dur', dur + 's');
+    ring.style.setProperty('--start', start + 'deg');
+
+    const dot = document.createElement('i');
+    const emo = (Array.isArray(d.emotions) && d.emotions[0]) || (d.emotion || '');
+    const col = EMOTION_COLOR[emo] || SAT_COLORS[h % SAT_COLORS.length];
+    dot.style.color = col;
+    dot.title = displayTitle(d);
+    dot.addEventListener('click', (e) => { e.stopPropagation(); openDream(d.id); });
+
+    ring.appendChild(dot);
+    box.appendChild(ring);
+  });
+}
 function renderUnivers(){
   const n = State.dreams.length;
   const cap = $('#orb-caption');

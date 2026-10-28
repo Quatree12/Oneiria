@@ -438,31 +438,87 @@ function resizeSky(){
   drawSky();
 }
 
-/* Un satellite par rêve. Position, rayon et vitesse dérivés de l'identifiant :
-   un même rêve garde toujours la même orbite. */
+/* Les émotions se répartissent en deux familles.
+   L'orbite prend la couleur de sa famille, le satellite garde celle de son émotion. */
+const EMO_POSITIVE = ['Émerveillement','Joie','Paix','Curiosité','Sérénité','Tendresse','Euphorie','Gratitude','Nostalgie'];
+const EMO_NEGATIVE = ['Confusion','Peur','Mélancolie','Vertige','Colère','Honte','Solitude'];
+
+const ORBIT_FAMILY = {
+  positive: { ring:['#A99AFF','#80E5DF'], speed: 1 },   // sens horaire, violet → turquoise
+  negative: { ring:['#6C8CFF','#F2B6D8'], speed:-1 },   // sens inverse, bleu → rose
+  neutral:  { ring:['#F7F4FF','#8FA0FF'], speed: 1 }    // sans émotion, discret, au centre
+};
+
+function orbitFamilyOf(d){
+  const e = dreamEmotions(d)[0] || '';
+  if (EMO_POSITIVE.includes(e)) return 'positive';
+  if (EMO_NEGATIVE.includes(e)) return 'negative';
+  return 'neutral';
+}
+
+/* Les rêves d'une même famille se partagent des orbites de trois places.
+   24 rêves ≈ 8 familles d'orbites au lieu de 24 ellipses entrecroisées. */
+const ORBITS_PER_FAMILY = 3;
+
 function buildSkyDots(){
   Sky.dots = [];
+  Sky.orbits = [];
   const dreams = State.dreams.slice(0, 24);   // au-delà, le ciel devient illisible
   const base = skyBase();
 
-  dreams.forEach((d, i) => {
-    const h = hashOf(d.id);
-    const layer = i % 6;
-    const rNorm = 1 - layer * 0.125;
-    const rx = base * rNorm;
-    const ry = rx * (0.36 + ((h >> 4) % 26) / 100);
-    const emo = dreamEmotions(d)[0] || '';
-    Sky.dots.push({
-      angle: ((h >> 16) % 360) * Math.PI / 180,
-      rx, ry,
-      size: 6 + ((h >> 20) % 4) + (i % 3) * 0.8,
-      color: EMOTION_COLOR[emo] || SAT_PALETTE[h % SAT_PALETTE.length],
-      speed: (0.14 + ((h >> 8) % 20) / 100) * (i % 2 ? -1 : 1),
-      phase: (h % 100) / 100 * Math.PI * 2,
-      dreamId: d.id,
-      title: displayTitle(d),
-      _x: 0, _y: 0
+  // Groupement par famille, puis découpage en orbites de trois rêves
+  const families = { positive:[], negative:[], neutral:[] };
+  dreams.forEach(d => families[orbitFamilyOf(d)].push(d));
+
+  // Ordre des anneaux : la famille la plus nombreuse prend les plus larges,
+  // la neutre reste au centre pour ne pas concurrencer les autres.
+  const order = ['positive','negative','neutral']
+    .filter(f => families[f].length)
+    .sort((a,b) => {
+      if (a === 'neutral') return 1;
+      if (b === 'neutral') return -1;
+      return families[b].length - families[a].length;
     });
+
+  let slot = 0;                               // rang de l'orbite, du plus large au plus serré
+  const totalSlots = Math.max(1,
+    order.reduce((n,f) => n + Math.ceil(families[f].length / ORBITS_PER_FAMILY), 0));
+
+  order.forEach(fam => {
+    const list = families[fam];
+    const conf = ORBIT_FAMILY[fam];
+
+    // Répartir la famille sur ses orbites, en alternant pour éviter
+    // que deux gros groupes d'affilée ne laissent un anneau vide au centre
+    for (let i = 0; i < list.length; i += ORBITS_PER_FAMILY){
+      const group = list.slice(i, i + ORBITS_PER_FAMILY);
+      const rNorm = 1 - (slot / Math.max(1, totalSlots)) * 0.62;   // 1.0 → 0.38
+      const rx = base * rNorm;
+      const tilt = (slot * 37) % 180 - 90;     // inclinaison variée, sans hasard par rêve
+      const ry = rx * (0.34 + (slot % 3) * 0.07);
+      const dur = 20 + slot * 4;               // orbites externes plus lentes
+
+      Sky.orbits.push({ rx, ry, tilt, dur, family: fam, ring: conf.ring, phase: (slot * 0.7) % (Math.PI*2) });
+
+      group.forEach((d, k) => {
+        const h = hashOf(d.id);
+        const emo = dreamEmotions(d)[0] || '';
+        Sky.dots.push({
+          angle: (k / ORBITS_PER_FAMILY) * Math.PI * 2 + ((h >> 16) % 60) * Math.PI / 180,
+          rx, ry, tilt, dur,
+          family: fam,
+          dir: conf.speed,
+          size: 6.5 + ((h >> 20) % 4) + (k % 3) * 0.8,
+          color: EMOTION_COLOR[emo] || SAT_PALETTE[h % SAT_PALETTE.length],
+          speed: (0.6 + ((h >> 8) % 30) / 100) * conf.speed,
+          phase: (h % 100) / 100 * Math.PI * 2,
+          dreamId: d.id,
+          title: displayTitle(d),
+          _x: 0, _y: 0
+        });
+      });
+      slot++;
+    }
   });
 }
 
@@ -484,16 +540,23 @@ function drawSky(){
   ctx.fillStyle = outer;
   ctx.beginPath(); ctx.arc(cx, cy, B, 0, Math.PI*2); ctx.fill();
 
-  /* --- Orbites --- */
-  ctx.lineWidth = 0.8;
-  if (Sky.dots.length){
-    Sky.dots.forEach(s => {
-      ctx.strokeStyle = hexAlpha(s.color, 0.12);
+  /* --- Orbites : une ellipse par groupe de trois rêves, colorée par famille --- */
+  ctx.lineWidth = 1.1;
+  if (Sky.orbits && Sky.orbits.length){
+    Sky.orbits.forEach(o => {
+      const t = Math.PI / 180 * o.tilt;
+      const grad = ctx.createLinearGradient(
+        cx - o.rx * Math.cos(t), cy - o.rx * Math.sin(t),
+        cx + o.rx * Math.cos(t), cy + o.rx * Math.sin(t)
+      );
+      grad.addColorStop(0, hexAlpha(o.ring[0], 0.42));
+      grad.addColorStop(1, hexAlpha(o.ring[1], 0.42));
+      ctx.strokeStyle = grad;
       ctx.beginPath();
-      ctx.ellipse(cx, cy, s.rx, s.ry, 0, 0, Math.PI*2);
+      ctx.ellipse(cx, cy, o.rx, o.ry, t, 0, Math.PI*2);
       ctx.stroke();
     });
-  } else {
+  } else if (Sky.dots.length){
     [[0.74,0,'rgba(247,244,255,.15)'],
      [0.56,0.42,'rgba(128,229,223,.13)'],
      [0.40,-0.42,'rgba(242,182,216,.11)']].forEach(r => {
@@ -524,11 +587,16 @@ function drawSky(){
   ctx.fill();
   ctx.restore();
 
-  /* --- Les satellites --- */
+  /* --- Les satellites ---
+     La position suit l'inclinaison de SON orbite : sans cette rotation,
+     les satellites ne tomberaient pas sur l'ellipse dessinée. */
   Sky.dots.forEach(s => {
     s.angle += s.speed * 0.01;
-    const x = cx + Math.cos(s.angle) * s.rx;
-    const y = cy + Math.sin(s.angle) * s.ry;
+    const t = Math.PI / 180 * (s.tilt || 0);
+    const ex = Math.cos(s.angle) * s.rx;
+    const ey = Math.sin(s.angle) * s.ry;
+    const x = cx + ex * Math.cos(t) - ey * Math.sin(t);
+    const y = cy + ex * Math.sin(t) + ey * Math.cos(t);
     s._x = x; s._y = y;
 
     // Profondeur : un satellite plus éloigné latéralement paraît plus proche

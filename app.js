@@ -20,10 +20,7 @@ const EMOTION_COLOR = {
   'Colère':'#FF9A8F','Honte':'#C7A5C9','Euphorie':'#7FE8D6','Solitude':'#B0B6D9',
   'Gratitude':'#FFD9A0'
 };
-const EMOTION_COLOR = {
-  'Émerveillement':'#A99AFF','Joie':'#80E5DF','Paix':'#9EE7C4',
-  'Confusion':'#F2B6D8','Peur':'#8FA0FF','Mélancolie':'#C6B7FF','Curiosité':'#7FD7E8'
-};
+
 const TYPES = { ecrit:'Écrit', raconte:'Raconté', oublie:'Oublié' };
 
 const PALETTE = [
@@ -195,18 +192,28 @@ const Store = (() => {
 })();
 
 /* ============================================================
-   2. MODÈLE
+   2. MODÈLE — un rêve porte une LISTE d'émotions
    ============================================================ */
 function nowISO(){ return new Date().toISOString(); }
 
-function newDream({ type='ecrit', title='', text='', emotion='', keywords=[], drawing=null, date=null }){
+function normEmotions(list){
+  const src = Array.isArray(list) ? list : (list ? [list] : []);
+  const out = [];
+  src.forEach(e => {
+    const v = String(e || '').trim();
+    if (v && !out.includes(v)) out.push(v);
+  });
+  return out;
+}
+
+function newDream({ type='ecrit', title='', text='', emotions=[], keywords=[], drawing=null, date=null }){
   const id = uid();
   return {
     id, schema:SCHEMA,
     type,
     title: (title||'').trim(),
     createdAt: date || nowISO(),
-    emotion: emotion || '',
+    emotions: normEmotions(emotions),
     keywords: normKeywords(keywords),
     drawing: drawing || null,
     fragments: [{
@@ -389,7 +396,7 @@ function themeIndex(){
   const map = new Map();
   State.dreams.forEach(d => {
     const set = new Set((d.keywords||[]).map(k => k.toLowerCase()));
-    if (d.emotion) set.add(d.emotion.toLowerCase());
+    (d.emotions||[]).forEach(e => set.add(e.toLowerCase()));
     set.forEach(k => {
       if (!map.has(k)) map.set(k, { word:k, count:0, ids:[], color:null });
       const e = map.get(k);
@@ -438,7 +445,6 @@ function renderConstellations(){
     c.className = 'cnt';
     c.textContent = t.count;
     b.appendChild(c);
-    // Taille progressive selon le nombre de fragments
     const scale = 0.92 + Math.min(0.34, (t.count / max) * 0.34);
     b.style.fontSize = (12.5 * scale + 1.5).toFixed(1) + 'px';
     b.style.animationDelay = Math.min(i * 26, 400) + 'ms';
@@ -501,9 +507,9 @@ function miniCard(d){
 }
 
 /* ============================================================
-   7. RACCONTES
+   7. RACCONTES — puces multi-sélection
    ============================================================ */
-let rcEmotions = []
+let rcEmotions = [];
 
 function buildChips(container, onPick){
   container.innerHTML = '';
@@ -527,7 +533,7 @@ function buildChips(container, onPick){
   });
 }
 
-/* Remplit les puces à partir d'une liste d'émotions (édition d'un rêve). */
+/* Remplit les puces depuis une liste d'émotions (édition d'un rêve). */
 function setChips(container, values){
   const set = new Set(values || []);
   Array.from(container.querySelectorAll('.chip')).forEach(c => {
@@ -542,8 +548,8 @@ function resetRaccontes(force){
     return askLeave('Raccontes');
   }
   $('#form-raccontes').reset();
-  rcEmotion = '';
-  $$('#rc-emotions .chip').forEach(c => { c.classList.remove('on'); c.setAttribute('aria-checked','false'); });
+  rcEmotions = [];
+  setChips($('#rc-emotions'), []);
   $('#rc-count').textContent = '0';
   State.dirty.raccontes = false;
   hideHint('#rc-hint');
@@ -552,11 +558,11 @@ function resetRaccontes(force){
 function formIsDirty(which){
   if (which === 'raccontes'){
     return !!(($('#rc-titre').value||'').trim() || ($('#rc-texte').value||'').trim() ||
-              ($('#rc-mots').value||'').trim() || rcEmotion);
+              ($('#rc-mots').value||'').trim() || rcEmotions.length);
   }
   if (which === 'decrit'){
     return !!(($('#dc-titre').value||'').trim() || ($('#dc-texte').value||'').trim() ||
-              ($('#dc-mots').value||'').trim() || dcEmotion);
+              ($('#dc-mots').value||'').trim() || dcEmotions.length);
   }
   return false;
 }
@@ -586,7 +592,7 @@ async function submitRaccontes(e){
     type:'ecrit',
     title: $('#rc-titre').value,
     text,
-    emotion: rcEmotion,
+    emotions: rcEmotions,
     keywords: parseKeywords($('#rc-mots').value)
   });
   try{
@@ -604,11 +610,10 @@ async function submitRaccontes(e){
 /* ============================================================
    8. DÉCRIT — dictée
    ============================================================ */
-let dcEmotions = []
+let dcEmotions = [];
 let recognition = null;
 let listening = false;
 let interimBuffer = '';
-let recErrorShown = false;
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -641,7 +646,6 @@ function startDictation(){
     $('#mic-btn').setAttribute('aria-label','Arrêter la dictée');
     $('#mic-state').textContent = 'Écoute active…';
     $('#mic-stop').hidden = false;
-    recErrorShown = false;
   };
   recognition.onresult = (ev) => {
     let finalTxt = '';
@@ -669,15 +673,13 @@ function startDictation(){
     } else if (code !== 'aborted'){
       showHint('#dc-hint','La dictée s’est interrompue (' + code + '). Vous pouvez réessayer ou écrire le récit à la main.');
     }
-    recErrorShown = true;
   };
   recognition.onend = () => {
     listening = false;
     $('#mic-btn').classList.remove('live');
     $('#mic-btn').setAttribute('aria-label','Démarrer la dictée');
     $('#mic-stop').hidden = true;
-    if ($('#mic-state').textContent.startsWith('…')) $('#mic-state').textContent = 'Dictée à l’arrêt';
-    else $('#mic-state').textContent = 'Dictée à l’arrêt';
+    $('#mic-state').textContent = 'Dictée à l’arrêt';
   };
 
   try{
@@ -701,8 +703,8 @@ function resetDecrit(force){
   if (!force && formIsDirty('decrit')) return askLeaveDecrit();
   stopDictation();
   $('#form-decrit').reset();
-  dcEmotion = '';
-  $$('#dc-emotions .chip').forEach(c => { c.classList.remove('on'); c.setAttribute('aria-checked','false'); });
+  dcEmotions = [];
+  setChips($('#dc-emotions'), []);
   $('#dc-count').textContent = '0';
   State.dirty.decrit = false;
   hideHint('#dc-hint');
@@ -731,7 +733,7 @@ async function submitDecrit(e){
     type:'raconte',
     title: $('#dc-titre').value,
     text,
-    emotion: dcEmotion,
+    emotions: dcEmotions,
     keywords: parseKeywords($('#dc-mots').value)
   });
   try{
@@ -846,7 +848,6 @@ function drawStroke(s){
     ctx.beginPath();
     ctx.arc(s.pts[0].x * Draw.w, s.pts[0].y * Draw.h, ctx.lineWidth/2, 0, Math.PI*2);
     ctx.fillStyle = s.color;
-    if (s.erase) ctx.globalCompositeOperation = 'destination-out';
     ctx.fill();
   } else {
     ctx.beginPath();
@@ -911,6 +912,7 @@ function openDrawSheet(dreamId, fresh){
   requestAnimationFrame(() => { resizeCanvas(); redraw(); });
 }
 
+/* CORRIGÉ : garder le dessin ramène aussi à l'Univers, comme le passer. */
 async function saveDrawing(){
   const id = State.drawingDreamId;
   const d = getDream(id);
@@ -921,16 +923,16 @@ async function saveDrawing(){
     closeSheet('sheet-dessine');
     toast('Dessin retiré du rêve.');
     refreshAfterDreamChange();
+    go('univers');
     return;
   }
-  // Rendu PNG net : les tracés restent stockés en vectoriel, le PNG est pour l'export.
   const png = renderPNG(1024, Math.round(1024 * (Draw.h / Math.max(1,Draw.w))));
   d.drawing = { strokes: Draw.strokes, dataUrl: png, updatedAt: nowISO() };
   await saveDream(d);
   closeSheet('sheet-dessine');
   toast('Dessin gardé et associé au rêve.', 'ok');
   refreshAfterDreamChange();
-  if (State.view === 'univers') renderUnivers();
+  go('univers');
 }
 
 function renderPNG(w, h){
@@ -942,6 +944,7 @@ function renderPNG(w, h){
   Draw.strokes.forEach(s => {
     if (!s.pts.length) return;
     ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
     ctx.strokeStyle = s.color;
     ctx.lineWidth = s.size * (w / Math.max(1, Draw.w));
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -970,12 +973,12 @@ function skipDrawing(){
   const id = State.drawingDreamId;
   closeSheet('sheet-dessine');
   toast(id ? 'Dessin passé. Le rêve est conservé.' : 'Dessin passé.');
-  if (State.view !== 'univers') go('univers'); else renderUnivers();
-}
-
-  refreshAfterDreamChange();
   go('univers');
 }
+
+function refreshAfterDreamChange(){
+  renderUnivers();
+  if (State.view === 'memory') renderMemory();
   if (State.currentDreamId && !$('#sheet-dream').hidden) openDream(State.currentDreamId);
 }
 
@@ -995,7 +998,7 @@ function matchesFilter(d){
 function matchesSearch(d, q){
   if (!q) return true;
   const hay = [
-    d.title, dreamText(d), d.emotion, (d.keywords||[]).join(' '),
+    d.title, dreamText(d), (d.emotions||[]).join(' '), (d.keywords||[]).join(' '),
     formatDate(d.createdAt), TYPES[d.type] || ''
   ].join(' ').toLowerCase();
   return q.toLowerCase().split(/\s+/).filter(Boolean).every(term => hay.includes(term));
@@ -1005,7 +1008,7 @@ function matchesConstellation(d){
   if (!State.constellation) return true;
   const c = State.constellation.toLowerCase();
   if ((d.keywords||[]).some(k => k.toLowerCase() === c)) return true;
-  if (d.emotion && d.emotion.toLowerCase() === c) return true;
+  if ((d.emotions||[]).some(e => e.toLowerCase() === c)) return true;
   return dreamText(d).toLowerCase().includes(c);
 }
 
@@ -1080,12 +1083,12 @@ function dreamCard(d, i){
   tb.className = 'badge ' + d.type;
   tb.textContent = TYPES[d.type] || 'Fragment';
   badges.appendChild(tb);
-  if (d.emotion){
+  (d.emotions||[]).forEach(e => {
     const eb = document.createElement('span');
     eb.className = 'badge emo';
-    eb.textContent = d.emotion;
+    eb.textContent = e;
     badges.appendChild(eb);
-  }
+  });
   if (d.drawing && (d.drawing.dataUrl || (d.drawing.strokes||[]).length)){
     const db = document.createElement('span');
     db.className = 'badge dessin';
@@ -1112,7 +1115,8 @@ function dreamCard(d, i){
     const img = document.createElement('img');
     img.src = d.drawing.dataUrl; img.alt = 'Dessin associé';
     th.appendChild(img);
-    foot.appendChild(th);
+    foot.appendChild
+         foot.appendChild(th);
   }
   const tags = document.createElement('span');
   tags.className = 'dc-tags';
@@ -1155,7 +1159,7 @@ function openDream(id){
   };
   addMeta(formatDateTime(d.createdAt));
   addMeta(TYPES[d.type] || 'Fragment', d.type);
-  if (d.emotion) addMeta(d.emotion, 'emo');
+  (d.emotions||[]).forEach(e => addMeta(e, 'emo'));
   (d.keywords||[]).forEach(k => addMeta('#' + k));
 
   const wrap = $('#dream-draw-wrap');
@@ -1218,6 +1222,7 @@ function startEdit(){
   if (!d) return;
   $('#dr-edit-titre').value = d.title || '';
   $('#dr-edit-texte').value = (d.fragments[0] && d.fragments[0].text) || '';
+  setChips($('#dr-edit-emotions'), d.emotions || []);
   $('#dr-add-form').hidden = true;
   $('#dr-edit-form').hidden = false;
   $('#dr-edit-titre').focus({ preventScroll:true });
@@ -1233,6 +1238,8 @@ async function saveEdit(e){
     return;
   }
   d.title = $('#dr-edit-titre').value.trim();
+  d.emotions = Array.from(($('#dr-edit-emotions') || { querySelectorAll: () => [] })
+    .querySelectorAll('.chip.on')).map(c => c.dataset.value);
   if (!d.fragments.length) d.fragments.push({ id: uid(), kind:d.type, text:txt, createdAt:d.createdAt });
   else d.fragments[0].text = txt;
   await saveDream(d);
@@ -1307,6 +1314,7 @@ async function createForgotten(){
   go('univers');
   renderUnivers();
 }
+
 /* ============================================================
    13. RÉGLAGES / EXPORT / IMPORT / EFFACEMENT
    ============================================================ */
@@ -1339,6 +1347,7 @@ function exportJSON(){
   toast(State.dreams.length + ' rêve(s) exporté(s).', 'ok');
 }
 
+/* Accepte : la liste d'émotions (nouveau) OU une émotion unique (ancien export). */
 function normalizeImported(raw){
   const list = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.dreams) ? raw.dreams : null);
   if (!list) return [];
@@ -1358,13 +1367,14 @@ function normalizeImported(raw){
     const drawing = item.drawing && typeof item.drawing === 'object'
       ? (item.drawing.dataUrl || Array.isArray(item.drawing.strokes) ? item.drawing : null)
       : null;
+    const emos = normEmotions(item.emotions && item.emotions.length ? item.emotions : item.emotion);
     out.push({
       id: item.id || uid(),
       schema: SCHEMA,
       type,
       title: String(item.title || ''),
       createdAt: item.createdAt || nowISO(),
-      emotion: EMOTIONS.includes(item.emotion) ? item.emotion : String(item.emotion || ''),
+      emotions: emos,
       keywords: normKeywords(item.keywords),
       drawing,
       fragments: frags
@@ -1444,6 +1454,7 @@ async function updateStorageInfo(){
    ============================================================ */
 function initStars(){
   const c = $('#stars');
+  if (!c) return;
   const ctx = c.getContext('2d');
   let stars = [], raf = null, t = 0;
   const colors = ['#F7F4FF','#A99AFF','#80E5DF','#F2B6D8'];
@@ -1460,7 +1471,6 @@ function initStars(){
         x: Math.random()*w, y: Math.random()*h,
         r: Math.random()*1.3 + .35,
         a: Math.random()*.55 + .2,
-        sp: Math.random()*.02 + .006,
         ph: Math.random()*Math.PI*2,
         c: colors[Math.floor(Math.random()*colors.length)],
         vy: Math.random()*.035 + .008
@@ -1522,7 +1532,7 @@ function wire(){
   $('#to-memory').addEventListener('click', () => go('memory'));
 
   // Raccontes
-  buildChips($('#rc-emotions'), v => { rcEmotion = v; State.dirty.raccontes = true; });
+  buildChips($('#rc-emotions'), v => { rcEmotions = v; State.dirty.raccontes = true; });
   $('#form-raccontes').addEventListener('submit', submitRaccontes);
   $('#rc-cancel').addEventListener('click', async () => {
     if (formIsDirty('raccontes')) { const ok = await askLeave('raccontes'); if (!ok) return; }
@@ -1535,7 +1545,7 @@ function wire(){
   $('#rc-texte').addEventListener('input', () => updateCount('#rc-texte','#rc-count'));
 
   // Décrit
-  buildChips($('#dc-emotions'), v => { dcEmotion = v; State.dirty.decrit = true; });
+  buildChips($('#dc-emotions'), v => { dcEmotions = v; State.dirty.decrit = true; });
   $('#mic-btn').addEventListener('click', () => { listening ? stopDictation() : startDictation(); });
   $('#mic-stop').addEventListener('click', stopDictation);
   $('#form-decrit').addEventListener('submit', submitDecrit);
@@ -1626,6 +1636,10 @@ function wire(){
     openDrawSheet(id, false);
   });
 
+  // Émotions dans la fiche détail (créées à la volée au premier usage)
+  const editEmoBox = $('#dr-edit-emotions');
+  if (editEmoBox) buildChips(editEmoBox, () => {});
+
   // Réglages
   $('#btn-settings').addEventListener('click', () => { openSheet('sheet-settings'); updateStorageInfo(); });
   $('#st-close').addEventListener('click', () => closeSheet('sheet-settings'));
@@ -1650,7 +1664,6 @@ function wire(){
     }
   });
 
-  // Mémoire : rechargement après retour d'onglet
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) renderUnivers();
   });
@@ -1663,8 +1676,8 @@ async function boot(){
   initStars();
   await Store.init();
   try { await loadDreams(); } catch(e){ console.warn(e); }
-  buildChips($('#rc-emotions'), v => { rcEmotion = v; });
-  buildChips($('#dc-emotions'), v => { dcEmotion = v; });
+  buildChips($('#rc-emotions'), v => { rcEmotions = v; });
+  buildChips($('#dc-emotions'), v => { dcEmotions = v; });
   initCanvas();
   setupSpeech();
   wire();
@@ -1674,7 +1687,6 @@ async function boot(){
     toast('Stockage local indisponible : les rêves de cette session ne seront pas conservés après fermeture.', 'bad');
   }
 
-  // Sécurité : prévenir si un formulaire est en cours
   window.addEventListener('beforeunload', (e) => {
     if (formIsDirty('raccontes') || formIsDirty('decrit')){
       e.preventDefault();
@@ -1687,12 +1699,3 @@ async function boot(){
 }
 
 document.addEventListener('DOMContentLoaded', boot);
-/* Attention : le service worker est enregistré séparément, à la fin du fichier app.js.
-   Ne supprimez pas ce bloc — il permet le fonctionnement hors-ligne après installation. */
-if ('serviceWorker' in navigator && location.protocol === 'https:'){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {
-      /* L'application reste pleinement fonctionnelle sans hors-ligne. */
-    });
-  });
-}

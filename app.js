@@ -503,7 +503,7 @@ function miniCard(d){
 /* ============================================================
    7. RACCONTES
    ============================================================ */
-let rcEmotion = '';
+let rcEmotions = []
 
 function buildChips(container, onPick){
   container.innerHTML = '';

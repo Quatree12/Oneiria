@@ -507,22 +507,33 @@ let rcEmotion = '';
 
 function buildChips(container, onPick){
   container.innerHTML = '';
+  container.classList.add('chips-multi');
   EMOTIONS.forEach(e => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'chip';
     b.textContent = e;
     b.dataset.value = e;
-    b.setAttribute('role','radio');
+    b.setAttribute('role','checkbox');
     b.setAttribute('aria-checked','false');
     b.addEventListener('click', () => {
-      const wasOn = b.classList.contains('on');
-      $$('.chip', container).forEach(c => { c.classList.remove('on'); c.setAttribute('aria-checked','false'); });
-      const val = wasOn ? '' : e;
-      if (!wasOn){ b.classList.add('on'); b.setAttribute('aria-checked','true'); }
-      onPick(val);
+      const on = !b.classList.contains('on');
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      const picked = Array.from(container.querySelectorAll('.chip.on')).map(c => c.dataset.value);
+      onPick(picked);
     });
     container.appendChild(b);
+  });
+}
+
+/* Remplit les puces à partir d'une liste d'émotions (édition d'un rêve). */
+function setChips(container, values){
+  const set = new Set(values || []);
+  Array.from(container.querySelectorAll('.chip')).forEach(c => {
+    const on = set.has(c.dataset.value);
+    c.classList.toggle('on', on);
+    c.setAttribute('aria-checked', on ? 'true' : 'false');
   });
 }
 

@@ -434,6 +434,7 @@ function renderUnivers(){
   else if (n === 1) cap.textContent = '1 fragment veille dans votre ciel.';
   else cap.textContent = n + ' fragments veillent dans votre ciel.';
 
+  buildOrbits();
   renderConstellations();
   renderRecent();
 }

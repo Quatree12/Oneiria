@@ -131,57 +131,52 @@ body.locked{overflow:hidden}
 }
 /* Anneaux : pistes fines. Pas de box-shadow ici — dans Safari, un scaleX/scaleY
    animé qui cohabite avec un box-shadow sur la même couche perd son mouvement. */
-.orb-ring{position:absolute;border-radius:50%;border:1.5px solid transparent;inset:8%;will-change:transform}
-.r1{border-color:rgba(247,244,255,.18);border-top-color:rgba(247,244,255,.62);animation:tilt1 30s linear infinite}
-.r2{inset:15%;border-color:rgba(128,229,223,.15);border-top-color:rgba(128,229,223,.68);animation:tilt2 40s linear infinite reverse}
-.r3{inset:1%;border-color:rgba(242,182,216,.11);border-top-color:rgba(242,182,216,.58);animation:tilt3 52s linear infinite}
-
-/* Satellites : agrandis, halo large, et DEUX animations simultanées —
-   l'orbite par left/top (le tour de la piste) et la pulsation par transform.
-   Séparer les deux propriétés est ce qui permet aux deux de cohabiter. */
 /* Conteneur des orbites */
 .orb-orbits{position:absolute;inset:0;display:block}
 
-/* Piste : une ellipse inclinée. Pas de box-shadow sur l'anneau lui-même —
-   dans Safari, un scaleY animé combiné à une ombre portée perd son mouvement. */
+/* Piste : ellipse inclinée, IMMOBILE. Son transform n'est jamais animé —
+   une animation écraserait le scaleY et l'ellipse redeviendrait un cercle. */
 .orb-ring{
   position:absolute;border-radius:50%;
   border:1px solid transparent;
-  border-top-color:rgba(247,244,255,.42);
-  border-right-color:rgba(247,244,255,.14);
+  border-top-color:rgba(247,244,255,.40);
+  border-right-color:rgba(247,244,255,.13);
   transform:rotate(var(--tilt,-24deg)) scaleY(var(--squash,.42));
-  will-change:transform;
 }
-.orb-ring.empty{animation:none;opacity:.5}
-.orb-ring.empty.r1{border-top-color:rgba(247,244,255,.30)}
-.orb-ring.empty.r2{inset:14%;border-top-color:rgba(128,229,223,.28)}
-.orb-ring.empty.r3{inset:2%;border-top-color:rgba(242,182,216,.24)}
+.orb-ring.empty{opacity:.45}
+.orb-ring.empty.r1{border-top-color:rgba(247,244,255,.28)}
+.orb-ring.empty.r2{inset:14%;border-top-color:rgba(128,229,223,.26)}
+.orb-ring.empty.r3{inset:2%;border-top-color:rgba(242,182,216,.22)}
 
-/* Satellite : DEUX animations sur deux propriétés distinctes.
-   L'orbite utilise left/top, la pulsation utilise transform — c'est la seule
-   façon pour que les deux tournent en même temps dans Safari. */
+/* Satellite : tout le mouvement est ici, en transform.
+   Chaque satellite reçoit son rayon (--r), sa durée (--dur) et son décalage. */
 .orb-ring.sat i{
   position:absolute;display:block;
+  left:50%;top:50%;
   width:7.5%;height:7.5%;min-width:19px;min-height:19px;
-  border-radius:50%;cursor:pointer;
+  margin:0;border-radius:50%;cursor:pointer;
   background:radial-gradient(circle at 34% 28%,#FFFFFF 0%,rgba(255,255,255,.94) 24%,currentColor 72%,currentColor 100%);
-  box-shadow:0 0 0 1px rgba(255,255,255,.38),0 0 14px 3px currentColor,0 0 34px 10px rgba(247,244,255,.22);
-  animation:satOrbit var(--dur,24s) linear var(--d-off,0s) infinite,
-            satPulse 3.6s ease-in-out infinite;
+  box-shadow:0 0 0 1px rgba(255,255,255,.38),0 0 14px 3px currentColor,0 0 34px 10px rgba(247,244,255,.20);
+  animation:satOrbit var(--dur,24s) linear var(--d-off,0s) infinite;
   transition:filter .2s;
 }
-.orb-ring.sat i:active{filter:brightness(1.4)}
+.orb-ring.sat i:active{filter:brightness(1.45)}
 .orb-ring.sat i::after{
   content:"";position:absolute;inset:-130%;border-radius:50%;
   background:radial-gradient(circle,currentColor,transparent 66%);
   opacity:.30;pointer-events:none;
 }
 
-/* Orbite : le satellite décrit un cercle, alors que sa piste est aplatie
-   par scaleY. On compense en parcourant une ellipse, pas un cercle. */
+/* Le satellite décrit son orbite : quatre points cardinaux suffisent,
+   le navigateur interpole entre eux. Le `translateX` est en pourcentage
+   de la SCÈNE grâce à --r, ce qui le rend indépendant de la taille du satellite. */
 @keyframes satOrbit{
-  0%  {left:calc(50% + 50% * var(--cos0,1)); top:calc(50% + 50% * var(--sin0,0))}
-  100%{left:50%; top:50%}
+  0%  {transform:translate(-50%,-50%) rotate(0deg)   translateX(var(--r,42%)) rotate(0deg)}
+  25% {transform:translate(-50%,-50%) rotate(90deg)  translateX(var(--r,42%)) rotate(-90deg)}
+  50% {transform:translate(-50%,-50%) rotate(180deg) translateX(var(--r,42%)) rotate(-180deg)}
+  75% {transform:translate(-50%,-50%) rotate(270deg) translateX(var(--r,42%)) rotate(-270deg)}
+  100%{transform:translate(-50%,-50%) rotate(360deg) translateX(var(--r,42%)) rotate(-360deg)}
+}
 }
 @keyframes satPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.2);opacity:1}}
 }

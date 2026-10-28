@@ -370,30 +370,6 @@ window.OneiriaGo = go;
    Couleur : tirée de la première émotion du rêve, sinon de son identifiant.
    Inclinaison, rayon, vitesse et point de départ sont dérivés de l'identifiant :
    un même rêve garde toujours la même place dans le ciel. */
-const SAT_COLORS = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
-  '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
-
-function hashOf(str){
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h;
-}
-
-function buildOrbits(){
-  const box = $('#orb-orbits');
-  if (!box) return;
-  const dreams = State.dreams.slice(0, 24);   // au-delà, le ciel deviendrait illisible
-  box.innerHTML = '';
-
-  // Ciel vide : trois pistes décoratives, sans satellite
-  if (dreams.length === 0){
-    [0,1,2].forEach(i => {
-      const ring = document.createElement('div');
-      ring.className = 'orb-ring empty r' + (i + 1);
-      box.appendChild(ring);
-    });
-    return;
-  }
 
   dreams.forEach((d, i) => {
     const h = hashOf(d.id);
@@ -431,29 +407,6 @@ function buildOrbits(){
    Couleur tirée de la première émotion du rêve, sinon de son identifiant.
    Rayon, inclinaison, vitesse et départ sont dérivés de l'identifiant :
    un même rêve garde toujours la même place dans le ciel. */
-const SAT_COLORS = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
-  '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
-
-function hashOf(str){
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h;
-}
-
-function buildOrbits(){
-  const box = $('#orb-orbits');
-  if (!box) return;
-  const dreams = State.dreams.slice(0, 24);   // au-delà, le ciel devient illisible
-  box.innerHTML = '';
-
-  if (dreams.length === 0){
-    [1,2,3].forEach(n => {
-      const ring = document.createElement('div');
-      ring.className = 'orb-ring empty r' + n;
-      box.appendChild(ring);
-    });
-    return;
-  }
 
   dreams.forEach((d, i) => {
     const h = hashOf(d.id);

@@ -485,6 +485,64 @@ function buildOrbits(){
   });
 }
 
+/* Chaque rêve enregistré devient un satellite en orbite.
+   Couleur tirée de la première émotion du rêve, sinon de son identifiant.
+   Rayon, inclinaison, vitesse et départ sont dérivés de l'identifiant :
+   un même rêve garde toujours la même place dans le ciel. */
+const SAT_COLORS = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
+  '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
+
+function hashOf(str){
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function buildOrbits(){
+  const box = $('#orb-orbits');
+  if (!box) return;
+  const dreams = State.dreams.slice(0, 24);   // au-delà, le ciel devient illisible
+  box.innerHTML = '';
+
+  if (dreams.length === 0){
+    [1,2,3].forEach(n => {
+      const ring = document.createElement('div');
+      ring.className = 'orb-ring empty r' + n;
+      box.appendChild(ring);
+    });
+    return;
+  }
+
+  dreams.forEach((d, i) => {
+    const h = hashOf(d.id);
+    const layer  = i % 4;
+    const inset  = 30 - layer * 7;                  // 30% → 9% : pistes imbriquées
+    const tilt   = -78 + (h % 156);                 // -78° → +78°
+    const squash = 0.30 + ((h >> 4) % 40) / 100;    // aplatissement de l'ellipse
+    const dur    = 16 + ((h >> 8) % 26);            // 16s → 42s pour un tour
+    const delay  = -((h >> 12) % dur);              // départ décalé
+    const radius = ((100 - 2 * inset) / 2).toFixed(1) + '%';
+
+    const ring = document.createElement('div');
+    ring.className = 'orb-ring sat';
+    ring.style.inset = inset + '%';
+    ring.style.setProperty('--tilt', tilt + 'deg');
+    ring.style.setProperty('--squash', squash);
+
+    const dot = document.createElement('i');
+    const emo = (Array.isArray(d.emotions) && d.emotions[0]) || (d.emotion || '');
+    dot.style.color = EMOTION_COLOR[emo] || SAT_COLORS[h % SAT_COLORS.length];
+    dot.style.setProperty('--r', radius);
+    dot.style.setProperty('--dur', dur + 's');
+    dot.style.setProperty('--d-off', delay + 's');
+    dot.title = displayTitle(d);
+    dot.addEventListener('click', (e) => { e.stopPropagation(); openDream(d.id); });
+
+    ring.appendChild(dot);
+    box.appendChild(ring);
+  });
+}
+
 function renderUnivers(){
   const n = State.dreams.length;
   const cap = $('#orb-caption');

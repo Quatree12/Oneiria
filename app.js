@@ -10,7 +10,16 @@ const DB_VERSION = 1;
 const STORE_DREAMS = 'dreams';
 const SCHEMA = 'oneiria/1';
 
-const EMOTIONS = ['Émerveillement','Joie','Paix','Confusion','Peur','Mélancolie','Curiosité'];
+const EMOTIONS = ['Émerveillement','Joie','Paix','Confusion','Peur','Mélancolie','Curiosité',
+  'Nostalgie','Sérénité','Vertige','Tendresse','Colère','Honte','Euphorie','Solitude','Gratitude'];
+
+const EMOTION_COLOR = {
+  'Émerveillement':'#A99AFF','Joie':'#80E5DF','Paix':'#9EE7C4',
+  'Confusion':'#F2B6D8','Peur':'#8FA0FF','Mélancolie':'#C6B7FF','Curiosité':'#7FD7E8',
+  'Nostalgie':'#D9B8FF','Sérénité':'#A8E6D0','Vertige':'#9FC4FF','Tendresse':'#FFC2DA',
+  'Colère':'#FF9A8F','Honte':'#C7A5C9','Euphorie':'#7FE8D6','Solitude':'#B0B6D9',
+  'Gratitude':'#FFD9A0'
+};
 const EMOTION_COLOR = {
   'Émerveillement':'#A99AFF','Joie':'#80E5DF','Paix':'#9EE7C4',
   'Confusion':'#F2B6D8','Peur':'#8FA0FF','Mélancolie':'#C6B7FF','Curiosité':'#7FD7E8'

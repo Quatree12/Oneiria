@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090A16">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ONEIRIA">
+<meta name="description" content="ONEIRIA — journal de rêves, votre univers personnel. Vos rêves restent sur votre appareil.">
+<title>ONEIRIA — Your dreams, your universe</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.svg">
+<link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ DÉCOR COSMIQUE ============ -->
+<div id="cosmos" aria-hidden="true">
+  <canvas id="stars"></canvas>
+  <div class="nebula n1"></div>
+  <div class="nebula n2"></div>
+  <div class="nebula n3"></div>
+</div>
+
+<!-- ============ EN-TÊTE APPLI ============ -->
+<header class="appbar" id="appbar">
+  <div class="appbar-brand">
+    <span class="brand-glow"></span>
+    <h1>ONEIRIA</h1>
+    <p>Your dreams, your universe.</p>
+  </div>
+  <button class="icon-btn" id="btn-settings" type="button" aria-label="Réglages et confidentialité">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.3a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 2.1 15H2a2 2 0 1 1 0-4h.2A1.7 1.7 0 0 0 3.4 8.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V4a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.3a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+  </button>
+</header>
+
+<main id="main">
+
+  <!-- ================= UNIVERS ================= -->
+  <section class="view" id="view-univers" data-view="univers" aria-label="Univers">
+    <div class="hero">
+      <h2 class="hero-title">Les rêves laissent des étoiles.</h2>
+      <p class="hero-sub">Un fragment suffit pour ouvrir un univers.</p>
+
+      <div class="orb-stage" id="orb-stage">
+        <div class="orb">
+          <div class="orb-core"></div>
+          <div class="orb-sheen"></div>
+          <div class="orb-ring r1"><i></i></div>
+          <div class="orb-ring r2"><i></i></div>
+          <div class="orb-ring r3"><i></i></div>
+          <div class="orb-halo h1"></div>
+          <div class="orb-halo h2"></div>
+        </div>
+        <div class="orb-caption" id="orb-caption">Votre ciel est encore vierge.</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="action-card a1" id="act-remember" type="button">
+        <span class="ac-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5 17.5 10.5"/></svg>
+        </span>
+        <span class="ac-text"><strong>Je me souviens d’un rêve</strong><em>L’écrire, posément.</em></span>
+        <span class="ac-chev">›</span>
+      </button>
+
+      <button class="action-card a2" id="act-speak" type="button">
+        <span class="ac-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+        </span>
+        <span class="ac-text"><strong>Je préfère le raconter</strong><em>À voix haute, pendant que c’est chaud.</em></span>
+        <span class="ac-chev">›</span>
+      </button>
+
+      <button class="action-card a3" id="act-forgot" type="button">
+        <span class="ac-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3"/><path d="M5.6 5.6 7.7 7.7"/><path d="M3 12h3"/><path d="M18 12h3"/><path d="M16.3 7.7l2.1-2.1"/><circle cx="12" cy="15.5" r="5.5"/></svg>
+        </span>
+        <span class="ac-text"><strong>Je ne m’en souviens plus</strong><em>Garder une trace du passage.</em></span>
+        <span class="ac-chev">›</span>
+      </button>
+    </div>
+
+    <section class="panel" aria-labelledby="t-constellations">
+      <div class="panel-head">
+        <h3 id="t-constellations">Constellations</h3>
+        <span class="panel-note" id="const-count"></span>
+      </div>
+      <p class="panel-lead" id="const-lead">Les thèmes qui reviennent se rassemblent ici.</p>
+      <div class="constellations" id="constellations"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="t-recent">
+      <div class="panel-head">
+        <h3 id="t-recent">Derniers fragments</h3>
+        <button class="link-btn" id="to-memory" type="button">Tout voir</button>
+      </div>
+      <div class="recent" id="recent"></div>
+    </section>
+  </section>
+
+  <!-- ================= RACCONTES ================= -->
+  <section class="view" id="view-raccontes" data-view="raccontes" aria-label="Raccontes" hidden>
+    <div class="view-head">
+      <p class="eyebrow">Raccontes</p>
+      <h2 class="view-title">Raconte-le à ta façon.</h2>
+      <p class="view-sub">Ce que tu écris maintenant restera exactement tel quel. Rien ne part sur Internet.</p>
+    </div>
+
+    <form class="glass-form" id="form-raccontes" novalidate>
+      <label class="field">
+        <span class="field-label">Titre du rêve <em>facultatif</em></span>
+        <input type="text" id="rc-titre" name="titre" maxlength="120" autocomplete="off"
+               placeholder="Le portail sous la pluie…">
+      </label>
+
+      <label class="field">
+        <span class="field-label">Récit du rêve <em>nécessaire à l’enregistrement</em></span>
+        <textarea id="rc-texte" name="texte" rows="9" maxlength="20000"
+                  placeholder="Je marchais dans un couloir de verre, et l’eau montait doucement…"></textarea>
+        <span class="counter"><span id="rc-count">0</span> caractère(s)</span>
+      </label>
+
+      <fieldset class="field">
+        <legend class="field-label">Émotion au réveil <em>facultatif</em></legend>
+        <div class="chips" id="rc-emotions" role="radiogroup" aria-label="Émotion au réveil"></div>
+      </fieldset>
+
+      <label class="field">
+        <span class="field-label">Mots-clés <em>facultatif — séparés par des virgules</em></span>
+        <input type="text" id="rc-mots" name="mots" autocomplete="off" placeholder="océan, poursuite, maison d’enfance">
+      </label>
+
+      <div class="form-actions">
+        <button class="btn ghost" type="button" id="rc-cancel">Annuler</button>
+        <button class="btn primary" type="submit" id="rc-save">Enregistrer</button>
+      </div>
+      <p class="form-hint" id="rc-hint" hidden></p>
+    </form>
+  </section>
+
+  <!-- ================= DÉCRIT ================= -->
+  <section class="view" id="view-decrit" data-view="decrit" aria-label="Décrit" hidden>
+    <div class="view-head">
+      <p class="eyebrow">Décrit</p>
+      <h2 class="view-title">Raconte-le. On t’écoute.</h2>
+      <p class="view-sub">La dictée transforme ta voix en texte, que tu peux ensuite corriger librement.</p>
+    </div>
+
+    <div class="mic-stage">
+      <button class="mic-btn" id="mic-btn" type="button" aria-label="Démarrer la dictée">
+        <span class="mic-rings"><i></i><i></i><i></i></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+      </button>
+      <div class="mic-state" id="mic-state">Dictée à l’arrêt</div>
+      <button class="btn subtle" id="mic-stop" type="button" hidden>Arrêter l’écoute</button>
+      <div class="mic-help" id="mic-help"></div>
+    </div>
+
+    <details class="wave-note">
+      <summary>Sur iPhone, l’astuce qui fonctionne toujours</summary>
+      <p>La dictée du clavier iOS est indépendante de cette application : ouvrez le champ de transcription,
+      puis touchez l’icône de microphone sur le clavier. Le texte s’écrit normalement dans le champ.
+      Si le cercle ci-dessus reste inactif, c’est que le navigateur ne propose pas sa propre
+      reconnaissance vocale — Oneiria ne l’invente pas.</p>
+    </details>
+
+    <form class="glass-form" id="form-decrit" novalidate>
+      <label class="field">
+        <span class="field-label">Titre <em>facultatif</em></span>
+        <input type="text" id="dc-titre" maxlength="120" autocomplete="off" placeholder="Titre du rêve raconté">
+      </label>
+
+      <label class="field">
+        <span class="field-label">Transcription <em>modifiable</em></span>
+        <textarea id="dc-texte" rows="8" maxlength="20000" placeholder="Ta voix apparaîtra ici. Tu peux aussi écrire à la main."></textarea>
+        <span class="counter"><span id="dc-count">0</span> caractère(s)</span>
+      </label>
+
+      <fieldset class="field">
+        <legend class="field-label">Émotion au réveil <em>facultatif</em></legend>
+        <div class="chips" id="dc-emotions" role="radiogroup" aria-label="Émotion au réveil"></div>
+      </fieldset>
+
+      <label class="field">
+        <span class="field-label">Mots-clés <em>facultatif</em></span>
+        <input type="text" id="dc-mots" autocomplete="off" placeholder="vol, forêt, écho">
+      </label>
+
+      <div class="form-actions">
+        <button class="btn ghost" type="button" id="dc-cancel">Annuler</button>
+        <button class="btn primary" type="submit" id="dc-save">Enregistrer</button>
+      </div>
+      <p class="form-hint" id="dc-hint" hidden></p>
+    </form>
+  </section>
+
+  <!-- ================= MEMORY ================= -->
+  <section class="view" id="view-memory" data-view="memory" aria-label="Memory" hidden>
+    <div class="view-head compact">
+      <p class="eyebrow">Memory</p>
+      <h2 class="view-title">Votre archive.</h2>
+    </div>
+
+    <div class="memory-tools">
+      <label class="search-wrap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+        <input type="search" id="mem-search" placeholder="Rechercher un mot, un thème, une date…" autocomplete="off">
+        <button class="clear-search" id="mem-clear" type="button" aria-label="Effacer la recherche" hidden>×</button>
+      </label>
+      <div class="filters" id="mem-filters" role="tablist" aria-label="Filtres des rêves">
+        <button class="fchip active" data-filter="tous" role="tab" aria-selected="true" type="button">Tous</button>
+        <button class="fchip" data-filter="ecrit" role="tab" aria-selected="false" type="button">Écrits</button>
+        <button class="fchip" data-filter="raconte" role="tab" aria-selected="false" type="button">Racontés</button>
+        <button class="fchip" data-filter="oublie" role="tab" aria-selected="false" type="button">Oubliés</button>
+        <button class="fchip" data-filter="dessin" role="tab" aria-selected="false" type="button">Avec dessin</button>
+      </div>
+    </div>
+
+    <div class="active-filter" id="mem-active" hidden>
+      <span id="mem-active-label"></span>
+      <button type="button" class="link-btn" id="mem-active-clear">retirer</button>
+    </div>
+
+    <div class="dream-list" id="dream-list"></div>
+  </section>
+
+</main>
+
+<!-- ============ BARRE DE NAVIGATION ============ -->
+<nav class="tabbar" id="tabbar" aria-label="Navigation principale">
+  <button class="tab active" data-view="univers" type="button" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="9.5" ry="3.6" transform="rotate(-22 12 12)"/></svg>
+    <span>Univers</span>
+  </button>
+  <button class="tab" data-view="raccontes" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="M13.5 6.5 17.5 10.5"/></svg>
+    <span>Raccontes</span>
+  </button>
+  <button class="tab" data-view="decrit" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+    <span>Décrit</span>
+  </button>
+  <button class="tab" data-view="memory" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2 2 0 0 1 6 3.5h5a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H6a2 2 0 0 1-2-2v-10Z"/><path d="M20 5.5a2 2 0 0 0-2-2h-5a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h5a2 2 0 0 0 2-2v-10Z"/></svg>
+    <span>Memory</span>
+  </button>
+</nav>
+
+<!-- ============ FEUILLES / MODALES ============ -->
+<div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+
+<section class="sheet" id="sheet-dessine" role="dialog" aria-modal="true" aria-labelledby="dessine-title" hidden>
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <p class="eyebrow">Dessine</p>
+      <h3 id="dessine-title">Donne-lui une forme.</h3>
+    </div>
+    <button class="icon-btn close" id="ds-close" type="button" aria-label="Fermer">×</button>
+  </div>
+  <p class="sheet-sub" id="ds-sub">Le dessin sera lié à ce rêve. Tu peux aussi passer cette étape.</p>
+
+  <div class="canvas-wrap">
+    <canvas id="draw-canvas" aria-label="Zone de dessin tactile"></canvas>
+    <div class="canvas-hint" id="canvas-hint">Dessine avec le doigt.</div>
+  </div>
+
+  <div class="palette" id="palette" role="group" aria-label="Palette de couleurs"></div>
+
+  <div class="tools">
+    <button class="tool" id="ds-pen" type="button" aria-pressed="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z"/></svg><span>Crayon</span>
+    </button>
+    <button class="tool" id="ds-eraser" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20h11"/><path d="m5 15 6-6 6 6-5 5H8l-3-3Z"/></svg><span>Gomme</span>
+    </button>
+    <button class="tool" id="ds-undo" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h11a5 5 0 0 1 0 10H9"/><path d="m8 5-4 4 4 4"/></svg><span>Annuler</span>
+    </button>
+    <button class="tool danger" id="ds-clear" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/></svg><span>Effacer</span>
+    </button>
+  </div>
+
+  <div class="draw-sizes" id="draw-sizes" role="group" aria-label="Épaisseur du trait">
+    <button data-size="3" type="button">Fin</button>
+    <button data-size="7" class="active" type="button">Moyen</button>
+    <button data-size="14" type="button">Épais</button>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn ghost" id="ds-skip" type="button">Passer le dessin</button>
+    <button class="btn primary" id="ds-save" type="button">Garder le dessin</button>
+  </div>
+</section>
+
+<section class="sheet" id="sheet-dream" role="dialog" aria-modal="true" aria-labelledby="dream-title" hidden>
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <p class="eyebrow" id="dream-type">Fragment</p>
+      <h3 id="dream-title">—</h3>
+    </div>
+    <button class="icon-btn close" id="dr-close" type="button" aria-label="Fermer">×</button>
+  </div>
+
+  <div class="dream-meta" id="dream-meta"></div>
+  <div class="dream-draw-wrap" id="dream-draw-wrap"></div>
+
+  <div class="fragments" id="dream-fragments"></div>
+
+  <div class="detail-actions">
+    <button class="btn subtle" id="dr-edit" type="button">Modifier</button>
+    <button class="btn subtle" id="dr-add" type="button">Ajouter un fragment</button>
+    <button class="btn subtle" id="dr-draw" type="button">Dessiner / modifier le dessin</button>
+    <button class="btn danger-ghost" id="dr-delete" type="button">Supprimer ce rêve</button>
+  </div>
+
+  <form class="inline-edit" id="dr-edit-form" hidden>
+    <label class="field">
+      <span class="field-label">Titre</span>
+      <input type="text" id="dr-edit-titre" maxlength="120" autocomplete="off">
+    </label>
+    <label class="field">
+      <span class="field-label">Texte du premier fragment</span>
+      <textarea id="dr-edit-texte" rows="7" maxlength="20000"></textarea>
+    </label>
+    <div class="form-actions">
+      <button class="btn ghost" type="button" id="dr-edit-cancel">Annuler</button>
+      <button class="btn primary" type="submit" id="dr-edit-save">Sauvegarder</button>
+    </div>
+  </form>
+
+  <form class="inline-edit" id="dr-add-form" hidden>
+    <label class="field">
+      <span class="field-label">Nouveau fragment <em>l’historique est conservé</em></span>
+      <textarea id="dr-add-texte" rows="6" maxlength="20000" placeholder="Cette nuit, la suite…"></textarea>
+    </label>
+    <label class="field">
+      <span class="field-label">Mots-clés supplémentaires <em>facultatif</em></span>
+      <input type="text" id="dr-add-mots" autocomplete="off" placeholder="forêt, silence">
+    </label>
+    <div class="form-actions">
+      <button class="btn ghost" type="button" id="dr-add-cancel">Annuler</button>
+      <button class="btn primary" type="submit" id="dr-add-save">Ajouter</button>
+    </div>
+  </form>
+</section>
+
+<section class="sheet" id="sheet-settings" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div>
+      <p class="eyebrow">Oneiria</p>
+      <h3 id="settings-title">Réglages et confidentialité</h3>
+    </div>
+    <button class="icon-btn close" id="st-close" type="button" aria-label="Fermer">×</button>
+  </div>
+
+  <div class="settings-block">
+    <h4>Où vivent vos rêves</h4>
+    <p>Tout est enregistré <strong>dans ce navigateur, sur cet appareil</strong> — jamais sur un serveur. Les textes et les dessins sont gardés dans la base locale IndexedDB du navigateur.</p>
+    <p>Conséquences, dites franchement :</p>
+    <ul class="plist">
+      <li>Aucun compte, aucune synchronisation entre appareils.</li>
+      <li>Les rêves ne suivent pas si vous changez de téléphone sans exporter.</li>
+      <li>Si vous effacez les données du site dans Safari (ou supprimez l’app), les rêves sauvegardés disparaissent.</li>
+      <li>Rien n’est chiffré : les données sont lisibles par quiconque ouvre le navigateur de cet appareil.</li>
+    </ul>
+  </div>
+
+  <div class="settings-block">
+    <h4>Sauvegarde manuelle</h4>
+    <p>Exportez régulièrement un fichier JSON : il contient tous vos fragments et vos dessins.</p>
+    <div class="settings-actions">
+      <button class="btn subtle" id="st-export" type="button">Exporter en JSON</button>
+      <button class="btn subtle" id="st-import" type="button">Importer un fichier JSON</button>
+      <input type="file" id="st-file" accept="application/json,.json" hidden>
+    </div>
+    <p class="tiny" id="st-storage"></p>
+  </div>
+
+  <div class="settings-block">
+    <h4>Vérifier l’application</h4>
+    <p>Quatorze scénarios à valider, avec les vérifications techniques exécutées sur votre propre navigateur.</p>
+    <div class="settings-actions">
+      <a class="btn subtle" id="st-guide" href="guide.html">Ouvrir le guide de test</a>
+    </div>
+  </div>
+
+  <div class="settings-block">
+    <h4>Confidentialité</h4>
+    <p>Aucune analytics, aucune publicité, aucun envoi de vos rêves à un service externe. La dictée utilise la reconnaissance vocale du navigateur lorsque celle-ci est disponible — selon le navigateur, la voix peut alors être traitée par le service du fournisseur (Apple, Google). Oneiria ne l’enregistre pas.</p>
+  </div>
+
+  <div class="settings-block danger-zone">
+    <h4>Zone sensible</h4>
+    <p>La suppression est définitive et immédiate. Pensez à exporter avant.</p>
+    <button class="btn danger-ghost" id="st-wipe" type="button">Supprimer toutes mes données</button>
+  </div>
+
+  <p class="tiny version">Oneiria — première version locale. Aucune donnée n’a été envoyée : cette page fonctionne hors-ligne une fois chargée.</p>
+</section>
+
+<!-- ============ CONFIRMATION ============ -->
+<section class="dialog" id="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-title" hidden>
+  <div class="dialog-card">
+    <h3 id="dlg-title">Confirmer</h3>
+    <p id="dlg-text"></p>
+    <div class="dialog-actions">
+      <button class="btn ghost" id="dlg-cancel" type="button">Annuler</button>
+      <button class="btn primary" id="dlg-ok" type="button">Confirmer</button>
+    </div>
+  </div>
+</section>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script src="app.js" defer></script>
+</body>
+</html>

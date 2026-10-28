@@ -131,49 +131,45 @@ body.locked{overflow:hidden}
 }
 /* Anneaux : pistes fines. Pas de box-shadow ici — dans Safari, un scaleX/scaleY
    animé qui cohabite avec un box-shadow sur la même couche perd son mouvement. */
-.orb-ring{position:absolute;border-radius:50%;border:1.5px solid transparent;inset:8%;will-change:transform}
-.r1{border-color:rgba(247,244,255,.18);border-top-color:rgba(247,244,255,.62);animation:tilt1 30s linear infinite}
-.r2{inset:15%;border-color:rgba(128,229,223,.15);border-top-color:rgba(128,229,223,.68);animation:tilt2 40s linear infinite reverse}
-.r3{inset:1%;border-color:rgba(242,182,216,.11);border-top-color:rgba(242,182,216,.58);animation:tilt3 52s linear infinite}
-
-/* Satellites : agrandis, halo large, et DEUX animations simultanées —
-   l'orbite par left/top (le tour de la piste) et la pulsation par transform.
-   Séparer les deux propriétés est ce qui permet aux deux de cohabiter. */
-.orb-ring i{
-  position:absolute;display:block;
-  width:7.5%;height:7.5%;min-width:19px;min-height:19px;
-  border-radius:50%;
-  background:radial-gradient(circle at 34% 28%,#FFFFFF 0%,rgba(255,255,255,.94) 24%,currentColor 72%,currentColor 100%);
-  color:var(--pearl);
-  box-shadow:0 0 0 1px rgba(255,255,255,.40),0 0 16px 4px currentColor,0 0 42px 13px rgba(247,244,255,.34);
+/* ---------- Pistes décoratives ---------- */
+.orb-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid transparent;
+  border-top-color:rgba(247,244,255,.30);
+  border-right-color:rgba(247,244,255,.09);
+  transform:rotate(var(--tilt,-24deg)) scaleY(var(--squash,.42));
 }
-.orb-ring i::after{
-  content:"";position:absolute;inset:-130%;border-radius:50%;
+.orb-ring.empty{opacity:.5}
+
+/* ---------- Satellites ----------
+   Posés directement dans .orb-orbits, JAMAIS dans une piste : un enfant
+   hérite du scaleY de son parent, ce qui les aplatissait en traits invisibles. */
+.sat{
+  position:absolute;left:0;top:0;margin:0;padding:0;
+  width:8%;height:8%;min-width:20px;min-height:20px;
+  border:none;border-radius:50%;cursor:pointer;
+  background:radial-gradient(circle at 34% 28%,#FFFFFF 0%,rgba(255,255,255,.95) 22%,currentColor 70%,currentColor 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.42),0 0 16px 4px currentColor,0 0 40px 12px rgba(247,244,255,.30);
+  animation:satTravel var(--dur,24s) linear var(--d-off,0s) infinite,
+            satPulse 3.6s ease-in-out infinite;
+  will-change:transform;
+}
+.sat::after{
+  content:"";position:absolute;inset:-120%;border-radius:50%;
   background:radial-gradient(circle,currentColor,transparent 66%);
-  opacity:.34;pointer-events:none;
+  opacity:.30;pointer-events:none;
 }
-.r1 i{animation:orbit1 14s linear infinite, satPulse 3.6s ease-in-out infinite}
-.r2 i{color:var(--turquoise);animation:orbit2 20s linear infinite, satPulse 3.6s ease-in-out 1.2s infinite;box-shadow:0 0 0 1px rgba(255,255,255,.34),0 0 16px 4px currentColor,0 0 42px 13px rgba(128,229,223,.34)}
-.r3 i{color:var(--rose);width:6%;height:6%;min-width:16px;min-height:16px;animation:orbit3 28s linear infinite, satPulse 4.4s ease-in-out 2.2s infinite;box-shadow:0 0 0 1px rgba(255,255,255,.30),0 0 14px 4px currentColor,0 0 36px 11px rgba(242,182,216,.32)}
+.sat:active{filter:brightness(1.5)}
 
-/* Tour complet de la piste, en pourcentage de l'anneau (les valeurs
-   dépassent légèrement les bornes pour que le satellite frôle le bord). */
-@keyframes orbit1{
-  0%{left:50%;top:-3.75%} 25%{left:96.25%;top:50%}
-  50%{left:50%;top:103.75%} 75%{left:-3.75%;top:50%}
-  100%{left:50%;top:-3.75%}
+/* Parcours : ellipse décrite par translate, en pixels via --rx et --ry. */
+@keyframes satTravel{
+  0%  {transform:translate(calc(var(--cx) + var(--rx)), calc(var(--cy)))}
+  25% {transform:translate(calc(var(--cx)), calc(var(--cy) + var(--ry)))}
+  50% {transform:translate(calc(var(--cx) - var(--rx)), calc(var(--cy)))}
+  75% {transform:translate(calc(var(--cx)), calc(var(--cy) - var(--ry)))}
+  100%{transform:translate(calc(var(--cx) + var(--rx)), calc(var(--cy)))}
 }
-@keyframes orbit2{
-  0%{left:30%;top:103.75%} 25%{left:-3.75%;top:50%}
-  50%{left:50%;top:-3.75%} 75%{left:103.75%;top:50%}
-  100%{left:30%;top:103.75%}
-}
-@keyframes orbit3{
-  0%{left:97%;top:50%} 25%{left:50%;top:97%}
-  50%{left:3%;top:50%} 75%{left:50%;top:3%}
-  100%{left:97%;top:50%}
-}
-@keyframes satPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.22);opacity:1}}
+@keyframes satPulse{0%,100%{opacity:.88}50%{opacity:1}}
 
 /* Inclinaison des pistes : tour complet lent, en gardant l'aplatissement. */
 @keyframes tilt1{

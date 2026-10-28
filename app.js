@@ -376,7 +376,14 @@ function hashOf(str){
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
   return h;
 }
+const SAT_COLORS = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
+  '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
 
+function dreamEmotions(d){
+  if (Array.isArray(d.emotions)) return d.emotions;
+  if (d.emotion) return [d.emotion];
+  return [];
+}
 function buildOrbits(){
   const box = $('#orb-orbits');
   if (!box) return;

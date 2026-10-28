@@ -366,102 +366,32 @@ window.OneiriaGo = go;
 /* ============================================================
    6. UNIVERS
    ============================================================ */
-/* Un satellite par rêve : posé directement dans .orb-orbits (jamais dans une
-   piste, car un enfant hérite du scaleY de son parent et s'aplatit).
-   Position et orbite dérivées de l'identifiant : un rêve garde sa place. */
-const SAT_ORBIT = { cx: '50%', cy: '50%' };
-
-function hashOf(str){
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h;
-}
-const SAT_COLORS = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
-  '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
-
-function dreamEmotions(d){
-  if (Array.isArray(d.emotions)) return d.emotions;
-  if (d.emotion) return [d.emotion];
-  return [];
-}
-function buildOrbits(){
-  const box = $('#orb-orbits');
-  if (!box) return;
-  const dreams = State.dreams.slice(0, 24);
-  box.innerHTML = '';
-
-  // Aucun rêve : trois pistes décoratives seulement
-  if (dreams.length === 0){
-    [1,2,3].forEach(n => {
-      const ring = document.createElement('div');
-      ring.className = 'orb-ring empty r' + n;
-      box.appendChild(ring);
-    });
-    return;
-  }
-
-  const stage = $('#orb-stage');
-  const boxRect = box.getBoundingClientRect();
-  const size = boxRect.width || 260;         // largeur de la scène en px
-
-  dreams.forEach((d, i) => {
-    const h = hashOf(d.id);
-
-    // Rayon horizontal : chaque rêve a SON orbite, du plus large au plus serré
-    const layerR = 0.46 - (i % 6) * 0.05;    // 0.46 → 0.21 (fraction de la largeur)
-    const ratioY = 0.26 + ((h >> 4) % 30) / 100;   // 0.26 → 0.55 : aplatissement
-    const rx = Math.round(size * layerR);
-    const ry = Math.round(rx * ratioY);
-    const dur = 18 + ((h >> 8) % 24);        // 18s → 42s par tour
-    const delay = -((h >> 12) % dur);
-
-    // La piste correspondante, en ellipse décorative
-    const ring = document.createElement('div');
-    ring.className = 'orb-ring empty';
-    const insetPct = Math.round(50 - layerR * 100);
-    ring.style.inset = insetPct + '%';
-    ring.style.setProperty('--tilt', ((h % 120) - 60) + 'deg');
-    ring.style.setProperty('--squash', ratioY);
-    box.appendChild(ring);
-
-    // Le satellite : hors de la piste, positionné par translate
-    const dot = document.createElement('button');
-    dot.type = 'button';
-    dot.className = 'sat';
-    const emo = dreamEmotions(d)[0] || '';
-    dot.style.color = EMOTION_COLOR[emo] || SAT_COLORS[h % SAT_COLORS.length];
-    dot.style.setProperty('--cx', '50%');
-    dot.style.setProperty('--cy', '50%');
-    dot.style.setProperty('--rx', rx + 'px');
-    dot.style.setProperty('--ry', ry + 'px');
-    dot.style.setProperty('--dur', dur + 's');
-    dot.style.setProperty('--d-off', delay + 's');
-    dot.setAttribute('aria-label', displayTitle(d));
-    dot.title = displayTitle(d);
-    dot.addEventListener('click', () => openDream(d.id));
-    box.appendChild(dot);
-  });
-}
-
 /* ============================================================
    CIEL DES RÊVES — moteur d'animation en JavaScript pur.
-   Un satellite par rêve, dessiné sur canvas : aucune dépendance
-   aux animations CSS, donc rendu identique dans tous les navigateurs.
+   Tout est dessiné sur un canvas : aucune dépendance aux animations CSS,
+   donc un rendu identique dans tous les navigateurs.
    ============================================================ */
-const Sky = {
-  canvas: null, ctx: null,
-  stars: [],           // {angle, rx, ry, size, color, speed, phase, dreamId, title}
-  t: 0, raf: null, dpr: 1, w: 0, h: 0
-};
-
 const SAT_PALETTE = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
   '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
 
+const Sky = { canvas:null, ctx:null, dots:[], t:0, raf:null, dpr:1, w:0, h:0 };
+
 function hashOf(str){
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
   return h;
 }
+
+/* Convertit #RRGGBB en rgba(...) pour les dégradés du canvas. */
+function hexAlpha(hex, a){
+  const v = String(hex || '#A99AFF').replace('#','');
+  const full = v.length === 3 ? v.split('').map(c => c+c).join('') : v;
+  const n = parseInt(full, 16) || 0xA99AFF;
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + a + ')';
+}
+
+/* Rayon de référence, commun à la sphère et aux orbites. */
+function skyBase(){ return Math.min(Sky.w, Sky.h) * 0.46; }
 
 function initSky(){
   const c = $('#orb-canvas');
@@ -471,19 +401,23 @@ function initSky(){
   resizeSky();
   window.addEventListener('resize', resizeSky);
   window.addEventListener('orientationchange', () => setTimeout(resizeSky, 320));
+
+  // Économie de batterie : la boucle s'arrête quand l'onglet n'est plus visible
   document.addEventListener('visibilitychange', () => {
     if (document.hidden){ if (Sky.raf) cancelAnimationFrame(Sky.raf); Sky.raf = null; }
     else if (!Sky.raf) loopSky();
   });
 
-  // Un appui sur un satellite ouvre le rêve correspondant
+  // Un appui près d'un satellite ouvre le rêve correspondant
   c.addEventListener('click', (e) => {
-    const p = pointerInCanvas(e);
-    const hit = Sky.stars.find(s => {
-      const pos = skyPosition(s);
-      return Math.hypot(pos.x - p.x, pos.y - p.y) < Math.max(pos.r, 16) * 1.6;
+    const r = c.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    let best = null, bestD = Infinity;
+    Sky.dots.forEach(s => {
+      const d = Math.hypot(s._x - px, s._y - py);
+      if (d < Math.max(s.size * 2.8, 24) && d < bestD){ best = s; bestD = d; }
     });
-    if (hit && hit.dreamId) openDream(hit.dreamId);
+    if (best && best.dreamId) openDream(best.dreamId);
   });
 }
 
@@ -498,110 +432,128 @@ function resizeSky(){
   c.width = Math.round(Sky.w * dpr);
   c.height = Math.round(Sky.h * dpr);
   buildSkyDots();
+  drawSky();
 }
 
-function pointerInCanvas(e){
-  const r = Sky.canvas.getBoundingClientRect();
-  const t = (e.touches && e.touches[0]) || e;
-  return { x: t.clientX - r.left, y: t.clientY - r.top };
-}
-
-/* Construit la liste des satellites à partir des rêves. */
+/* Un satellite par rêve. Position, rayon et vitesse dérivés de l'identifiant :
+   un même rêve garde toujours la même orbite. */
 function buildSkyDots(){
-  Sky.stars = [];
-  const dreams = State.dreams.slice(0, 24);
-  const base = Math.min(Sky.w, Sky.h) / 2;
+  Sky.dots = [];
+  const dreams = State.dreams.slice(0, 24);   // au-delà, le ciel devient illisible
+  const base = skyBase();
 
   dreams.forEach((d, i) => {
     const h = hashOf(d.id);
-    const layer = i % 6;                              // 6 orbites imbriquées
-    const rNorm = 0.96 - layer * 0.115;               // 0.96 → 0.39 du rayon max
+    const layer = i % 6;
+    const rNorm = 1 - layer * 0.125;
     const rx = base * rNorm;
-    const ry = rx * (0.34 + ((h >> 4) % 26) / 100);   // ellipse plus ou moins ouverte
-    const speed = (0.16 + ((h >> 8) % 22) / 100) * (i % 2 ? -1 : 1);  // sens alternés
+    const ry = rx * (0.36 + ((h >> 4) % 26) / 100);
     const emo = dreamEmotions(d)[0] || '';
-
-    Sky.stars.push({
+    Sky.dots.push({
       angle: ((h >> 16) % 360) * Math.PI / 180,
       rx, ry,
-      size: 5 + ((h >> 20) % 3) + (i % 3) * 0.7,     // 5 → 9 px
+      size: 6 + ((h >> 20) % 4) + (i % 3) * 0.8,
       color: EMOTION_COLOR[emo] || SAT_PALETTE[h % SAT_PALETTE.length],
-      speed,
+      speed: (0.14 + ((h >> 8) % 20) / 100) * (i % 2 ? -1 : 1),
       phase: (h % 100) / 100 * Math.PI * 2,
       dreamId: d.id,
-      title: displayTitle(d)
+      title: displayTitle(d),
+      _x: 0, _y: 0
     });
   });
 }
 
-/* Position courante d'un satellite sur son ellipse. */
-function skyPosition(s){
-  const cx = Sky.w / 2, cy = Sky.h / 2;
-  return {
-    x: cx + Math.cos(s.angle) * s.rx,
-    y: cy + Math.sin(s.angle) * s.ry,
-    r: s.size * (Sky.dpr > 1 ? 1.6 : 1.2)
-  };
+function drawSky(){
+  const ctx = Sky.ctx;
+  if (!ctx) return;
+  const W = Sky.w, H = Sky.h, cx = W/2, cy = H/2;
+  ctx.setTransform(Sky.dpr, 0, 0, Sky.dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const B = skyBase();
+  const pulse = 0.94 + 0.06 * Math.sin(Sky.t * 0.9);
+
+  /* --- Halo diffus derrière la sphère --- */
+  const outer = ctx.createRadialGradient(cx, cy, 0, cx, cy, B);
+  outer.addColorStop(0, 'rgba(169,154,255,.30)');
+  outer.addColorStop(0.5, 'rgba(128,229,223,.12)');
+  outer.addColorStop(1, 'rgba(9,10,22,0)');
+  ctx.fillStyle = outer;
+  ctx.beginPath(); ctx.arc(cx, cy, B, 0, Math.PI*2); ctx.fill();
+
+  /* --- Orbites --- */
+  ctx.lineWidth = 1;
+  if (Sky.dots.length){
+    Sky.dots.forEach(s => {
+      ctx.strokeStyle = hexAlpha(s.color, 0.15);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, s.rx, s.ry, 0, 0, Math.PI*2);
+      ctx.stroke();
+    });
+  } else {
+    [[0.74,0,'rgba(247,244,255,.15)'],
+     [0.56,0.42,'rgba(128,229,223,.13)'],
+     [0.40,-0.42,'rgba(242,182,216,.11)']].forEach(r => {
+      ctx.strokeStyle = r[2];
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, B*r[0], B*r[0]*0.42, r[1], 0, Math.PI*2);
+      ctx.stroke();
+    });
+  }
+
+  /* --- La sphère centrale --- */
+  const R = B * 0.62 * pulse;
+  const g = ctx.createRadialGradient(cx - R*0.34, cy - R*0.38, R*0.06, cx, cy, R);
+  g.addColorStop(0,    '#FFFFFF');
+  g.addColorStop(0.18, 'rgba(247,244,255,.92)');
+  g.addColorStop(0.48, 'rgba(169,154,255,.72)');
+  g.addColorStop(0.76, 'rgba(128,229,223,.30)');
+  g.addColorStop(1,    'rgba(11,11,24,.92)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.fill();
+
+  /* Reflet supérieur : la tache de lumière qui donne le volume */
+  ctx.save();
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = '#F7F4FF';
+  ctx.beginPath();
+  ctx.ellipse(cx - R*0.30, cy - R*0.42, R*0.20, R*0.09, -0.50, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  /* --- Les satellites --- */
+  Sky.dots.forEach(s => {
+    s.angle += s.speed * 0.01;
+    const x = cx + Math.cos(s.angle) * s.rx;
+    const y = cy + Math.sin(s.angle) * s.ry;
+    s._x = x; s._y = y;
+
+    // Profondeur : un satellite plus éloigné latéralement paraît plus proche
+    const z = 0.78 + 0.34 * ((Math.abs(Math.cos(s.angle)) + 1) / 2);
+    const r = s.size * z;
+    const twinkle = 0.86 + 0.14 * Math.sin(Sky.t * 1.7 + s.phase);
+
+    const halo = ctx.createRadialGradient(x, y, 0, x, y, r * 4.4);
+    halo.addColorStop(0, hexAlpha(s.color, 0.36 * twinkle));
+    halo.addColorStop(1, hexAlpha(s.color, 0));
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(x, y, r * 4.4, 0, Math.PI*2); ctx.fill();
+
+    const body = ctx.createRadialGradient(x - r*0.34, y - r*0.34, 0, x, y, r);
+    body.addColorStop(0, '#FFFFFF');
+    body.addColorStop(0.46, 'rgba(255,255,255,.90)');
+    body.addColorStop(1, s.color);
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+  });
+
+  ctx.setTransform(1,0,0,1,0,0);
 }
 
 function loopSky(){
-  const ctx = Sky.ctx;
-  if (!ctx) return;
-  const dpr = Sky.dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, Sky.w, Sky.h);
-
-  // Pistes : ellipses fines, dessinées en continu
-  if (Sky.stars.length){
-    ctx.save();
-    ctx.lineWidth = 1;
-    Sky.stars.forEach(s => {
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(247,244,255,.10)';
-      ctx.ellipse(Sky.w/2, Sky.h/2, s.rx, s.ry, 0, 0, Math.PI*2);
-      ctx.stroke();
-    });
-    ctx.restore();
-  }
-
-  // Satellites
   Sky.t += 0.016;
-  Sky.stars.forEach(s => {
-    s.angle += s.speed * 0.01;
-    const p = skyPosition(s);
-    const pulse = 0.88 + 0.12 * Math.sin(Sky.t * 1.6 + s.phase);
-
-    // Halo diffus
-    const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4.2);
-    halo.addColorStop(0, hexAlpha(s.color, 0.34 * pulse));
-    halo.addColorStop(1, hexAlpha(s.color, 0));
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * 4.2, 0, Math.PI*2);
-    ctx.fill();
-
-    // Corps : dégradé du blanc vers la couleur du rêve
-    const body = ctx.createRadialGradient(
-      p.x - p.r*0.35, p.y - p.r*0.35, 0,
-      p.x, p.y, p.r
-    );
-    body.addColorStop(0, '#FFFFFF');
-    body.addColorStop(0.45, 'rgba(255,255,255,.85)');
-    body.addColorStop(1, s.color);
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * pulse, 0, Math.PI*2);
-    ctx.fill();
-  });
-
+  drawSky();
   Sky.raf = requestAnimationFrame(loopSky);
-}
-
-/* Convertit #RRGGBB en rgba(...) — pour les dégradés du canvas. */
-function hexAlpha(hex, a){
-  const v = String(hex||'#A99AFF').replace('#','');
-  const n = parseInt(v.length === 3 ? v.split('').map(c=>c+c).join('') : v, 16);
-  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + a + ')';
 }
 
 function renderSky(){
@@ -620,6 +572,7 @@ function renderUnivers(){
   renderConstellations();
   renderRecent();
 }
+
 
 /* Une constellation = un thème présent dans AU MOINS DEUX rêves.
    Les mots vides et les mots de moins de trois lettres sont écartés. */
@@ -1940,6 +1893,7 @@ function wire(){
    ============================================================ */
 async function boot(){
   initStars();
+  initSky();
   await Store.init();
   try { await loadDreams(); } catch(e){ console.warn(e); }
   buildChips($('#rc-emotions'), v => { rcEmotions = v; });

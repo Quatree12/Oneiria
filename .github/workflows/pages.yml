@@ -27,7 +27,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp -r index.html styles.css app.js sw.js manifest.webmanifest icons _site/
+                    cp -r index.html styles.css app.js sw.js manifest.webmanifest guide.html guide.js icons _site/
           touch _site/.nojekyll
           echo "Site prêt :" && ls -la _site
 

@@ -366,6 +366,76 @@ window.OneiriaGo = go;
 /* ============================================================
    6. UNIVERS
    ============================================================ */
+/* Un satellite par rêve : posé directement dans .orb-orbits (jamais dans une
+   piste, car un enfant hérite du scaleY de son parent et s'aplatit).
+   Position et orbite dérivées de l'identifiant : un rêve garde sa place. */
+const SAT_ORBIT = { cx: '50%', cy: '50%' };
+
+function hashOf(str){
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function buildOrbits(){
+  const box = $('#orb-orbits');
+  if (!box) return;
+  const dreams = State.dreams.slice(0, 24);
+  box.innerHTML = '';
+
+  // Aucun rêve : trois pistes décoratives seulement
+  if (dreams.length === 0){
+    [1,2,3].forEach(n => {
+      const ring = document.createElement('div');
+      ring.className = 'orb-ring empty r' + n;
+      box.appendChild(ring);
+    });
+    return;
+  }
+
+  const stage = $('#orb-stage');
+  const boxRect = box.getBoundingClientRect();
+  const size = boxRect.width || 260;         // largeur de la scène en px
+
+  dreams.forEach((d, i) => {
+    const h = hashOf(d.id);
+
+    // Rayon horizontal : chaque rêve a SON orbite, du plus large au plus serré
+    const layerR = 0.46 - (i % 6) * 0.05;    // 0.46 → 0.21 (fraction de la largeur)
+    const ratioY = 0.26 + ((h >> 4) % 30) / 100;   // 0.26 → 0.55 : aplatissement
+    const rx = Math.round(size * layerR);
+    const ry = Math.round(rx * ratioY);
+    const dur = 18 + ((h >> 8) % 24);        // 18s → 42s par tour
+    const delay = -((h >> 12) % dur);
+
+    // La piste correspondante, en ellipse décorative
+    const ring = document.createElement('div');
+    ring.className = 'orb-ring empty';
+    const insetPct = Math.round(50 - layerR * 100);
+    ring.style.inset = insetPct + '%';
+    ring.style.setProperty('--tilt', ((h % 120) - 60) + 'deg');
+    ring.style.setProperty('--squash', ratioY);
+    box.appendChild(ring);
+
+    // Le satellite : hors de la piste, positionné par translate
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'sat';
+    const emo = dreamEmotions(d)[0] || '';
+    dot.style.color = EMOTION_COLOR[emo] || SAT_COLORS[h % SAT_COLORS.length];
+    dot.style.setProperty('--cx', '50%');
+    dot.style.setProperty('--cy', '50%');
+    dot.style.setProperty('--rx', rx + 'px');
+    dot.style.setProperty('--ry', ry + 'px');
+    dot.style.setProperty('--dur', dur + 's');
+    dot.style.setProperty('--d-off', delay + 's');
+    dot.setAttribute('aria-label', displayTitle(d));
+    dot.title = displayTitle(d);
+    dot.addEventListener('click', () => openDream(d.id));
+    box.appendChild(dot);
+  });
+}
+
 function renderUnivers(){
   const n = State.dreams.length;
   const cap = $('#orb-caption');
@@ -373,6 +443,7 @@ function renderUnivers(){
   else if (n === 1) cap.textContent = '1 fragment veille dans votre ciel.';
   else cap.textContent = n + ' fragments veillent dans votre ciel.';
 
+  buildOrbits();
   renderConstellations();
   renderRecent();
 }

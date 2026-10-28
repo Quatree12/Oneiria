@@ -1324,19 +1324,26 @@ function tally(list, keyFn){
     .sort((a,b) => b.count - a.count || a.word.localeCompare(b.word));
 }
 
+/* Les rêves qui portent réellement un thème : il doit figurer dans leurs
+   mots-clés ou leurs émotions — pas seulement apparaître dans le texte,
+   sinon « a » compterait dans n'importe quel rêve contenant la lettre a. */
+function dreamsWithTheme(theme){
+  const t = String(theme).toLowerCase();
+  return State.dreams.filter(d =>
+    (d.keywords || []).some(k => k.toLowerCase() === t) ||
+    dreamEmotions(d).some(e => e.toLowerCase() === t)
+  );
+}
+
 /* --- Le jour de la semaine où revient un thème --- */
 function weekdayOfTheme(theme){
-  const hits = State.dreams.filter(d => {
-    const hay = [(d.title||'').toLowerCase(), dreamText(d).toLowerCase(),
-                 (d.keywords||[]).join(' ').toLowerCase(),
-                 dreamEmotions(d).join(' ').toLowerCase()].join(' ');
-    return hay.includes(theme);
-  });
-  if (hits.length < 2) return null;
+  const hits = dreamsWithTheme(theme);
+  if (hits.length < 3) return null;    // sous trois rêves, ce n'est pas un motif
   const counts = tally(hits, d => DAY_NAMES[dateOf(d).getDay()]);
   counts.sort((a,b) => b.count - a.count);
   const top = counts[0];
   const ties = counts.filter(c => c.count === top.count).length;
+  if (ties > 1) return { day: top.word, count: top.count, total: hits.length, ties };
   return { day: top.word, count: top.count, total: hits.length, ties };
 }
 
@@ -1385,30 +1392,45 @@ function renderInsights(){
     return;
   }
 
-  const themes = tally(State.dreams.flatMap(d => d.keywords || []), k => k).slice(0, 5);
-  const emotions = tally(State.dreams, d => dreamEmotions(d)[0] || null).slice(0, 5);
+  // Seuls les vrais thèmes : mots de trois lettres minimum, hors mots vides.
+  // Les titres d'essai (« a », « b ») et le bruit sont ainsi écartés.
+  const themes = tally(State.dreams.flatMap(d => d.keywords || []), k => {
+    const w = String(k || '').toLowerCase().trim();
+    return isThemeWord(w) ? w : null;
+  }).filter(t => t.count >= 2).slice(0, 5);
+
+  const emotions = tally(State.dreams, d => dreamEmotions(d)[0] || null)
+    .filter(e => e.count >= 2).slice(0, 5);
   const months = monthlyTimeline();
   const maxMonth = Math.max(1, ...months.map(m => m.count));
   const bal = familyBalance();
 
   const parts = [];
 
-  /* 1. Le thème qui revient, et son jour */
+  /* 1. Le thème qui revient, et son jour.
+        Le comptage porte sur les rêves qui portent réellement le thème :
+        la phrase et le jour ne peuvent donc plus se contredire. */
   if (themes.length){
     const top = themes[0];
+    const hits = dreamsWithTheme(top.word);
     const day = weekdayOfTheme(top.word);
-    let phrase = 'Votre thème le plus présent est <b>' + esc(top.word) + '</b>, dans ' +
-      top.count + ' rêve' + (top.count > 1 ? 's' : '') + '.';
+    let phrase = 'Le thème qui revient le plus est <b>' + esc(top.word) + '</b> — ' +
+      hits.length + ' rêve' + (hits.length > 1 ? 's' : '') + '.';
     if (day && day.ties === 1){
-      phrase += ' Il revient surtout le <b>' + day.day + '</b> — ' + day.count +
+      phrase += ' Il tombe surtout le <b>' + day.day + '</b> : ' + day.count +
         ' fois sur ' + day.total + '.';
     } else if (day){
       phrase += ' Il se répartit sans jour dominant.';
+    } else {
+      phrase += ' Pas encore assez de recul pour dégager un jour.';
     }
     parts.push('<div class="ins-line">' + phrase + '</div>');
+  } else if (n >= 4){
+    parts.push('<div class="ins-line">Aucun mot-clé ne revient encore d’un rêve à l’autre. ' +
+      'Réutilisez-en un — « océan », « poursuite » — et cette section s’animera.</div>');
   }
 
-  /* 2. Classement des thèmes */
+  /* 2. Classement des thèmes — seulement s'il y a une vraie récurrence */
   if (themes.length > 1){
     parts.push('<div class="ins-block"><h5>Vos thèmes</h5><div class="ins-bars">' +
       themes.map(t => bar(t.word, t.count, themes[0].count, 'var(--turquoise)')).join('') +

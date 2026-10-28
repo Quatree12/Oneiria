@@ -604,7 +604,7 @@ async function submitRaccontes(e){
 /* ============================================================
    8. DÉCRIT — dictée
    ============================================================ */
-let dcEmotion = '';
+let dcEmotions = []
 let recognition = null;
 let listening = false;
 let interimBuffer = '';

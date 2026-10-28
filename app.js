@@ -443,6 +443,172 @@ function buildOrbits(){
   });
 }
 
+/* ============================================================
+   CIEL DES RÊVES — moteur d'animation en JavaScript pur.
+   Un satellite par rêve, dessiné sur canvas : aucune dépendance
+   aux animations CSS, donc rendu identique dans tous les navigateurs.
+   ============================================================ */
+const Sky = {
+  canvas: null, ctx: null,
+  stars: [],           // {angle, rx, ry, size, color, speed, phase, dreamId, title}
+  t: 0, raf: null, dpr: 1, w: 0, h: 0
+};
+
+const SAT_PALETTE = ['#A99AFF','#80E5DF','#F2B6D8','#F7F4FF','#6C8CFF',
+  '#FFD9A0','#FF8FB8','#9EE7C4','#E0C3FF','#FFB4A2'];
+
+function hashOf(str){
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function initSky(){
+  const c = $('#orb-canvas');
+  if (!c) return;
+  Sky.canvas = c;
+  Sky.ctx = c.getContext('2d');
+  resizeSky();
+  window.addEventListener('resize', resizeSky);
+  window.addEventListener('orientationchange', () => setTimeout(resizeSky, 320));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden){ if (Sky.raf) cancelAnimationFrame(Sky.raf); Sky.raf = null; }
+    else if (!Sky.raf) loopSky();
+  });
+
+  // Un appui sur un satellite ouvre le rêve correspondant
+  c.addEventListener('click', (e) => {
+    const p = pointerInCanvas(e);
+    const hit = Sky.stars.find(s => {
+      const pos = skyPosition(s);
+      return Math.hypot(pos.x - p.x, pos.y - p.y) < Math.max(pos.r, 16) * 1.6;
+    });
+    if (hit && hit.dreamId) openDream(hit.dreamId);
+  });
+}
+
+function resizeSky(){
+  const c = Sky.canvas;
+  if (!c) return;
+  const rect = c.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  Sky.dpr = dpr;
+  Sky.w = Math.max(1, Math.round(rect.width));
+  Sky.h = Math.max(1, Math.round(rect.height));
+  c.width = Math.round(Sky.w * dpr);
+  c.height = Math.round(Sky.h * dpr);
+  buildSkyDots();
+}
+
+function pointerInCanvas(e){
+  const r = Sky.canvas.getBoundingClientRect();
+  const t = (e.touches && e.touches[0]) || e;
+  return { x: t.clientX - r.left, y: t.clientY - r.top };
+}
+
+/* Construit la liste des satellites à partir des rêves. */
+function buildSkyDots(){
+  Sky.stars = [];
+  const dreams = State.dreams.slice(0, 24);
+  const base = Math.min(Sky.w, Sky.h) / 2;
+
+  dreams.forEach((d, i) => {
+    const h = hashOf(d.id);
+    const layer = i % 6;                              // 6 orbites imbriquées
+    const rNorm = 0.96 - layer * 0.115;               // 0.96 → 0.39 du rayon max
+    const rx = base * rNorm;
+    const ry = rx * (0.34 + ((h >> 4) % 26) / 100);   // ellipse plus ou moins ouverte
+    const speed = (0.16 + ((h >> 8) % 22) / 100) * (i % 2 ? -1 : 1);  // sens alternés
+    const emo = dreamEmotions(d)[0] || '';
+
+    Sky.stars.push({
+      angle: ((h >> 16) % 360) * Math.PI / 180,
+      rx, ry,
+      size: 5 + ((h >> 20) % 3) + (i % 3) * 0.7,     // 5 → 9 px
+      color: EMOTION_COLOR[emo] || SAT_PALETTE[h % SAT_PALETTE.length],
+      speed,
+      phase: (h % 100) / 100 * Math.PI * 2,
+      dreamId: d.id,
+      title: displayTitle(d)
+    });
+  });
+}
+
+/* Position courante d'un satellite sur son ellipse. */
+function skyPosition(s){
+  const cx = Sky.w / 2, cy = Sky.h / 2;
+  return {
+    x: cx + Math.cos(s.angle) * s.rx,
+    y: cy + Math.sin(s.angle) * s.ry,
+    r: s.size * (Sky.dpr > 1 ? 1.6 : 1.2)
+  };
+}
+
+function loopSky(){
+  const ctx = Sky.ctx;
+  if (!ctx) return;
+  const dpr = Sky.dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, Sky.w, Sky.h);
+
+  // Pistes : ellipses fines, dessinées en continu
+  if (Sky.stars.length){
+    ctx.save();
+    ctx.lineWidth = 1;
+    Sky.stars.forEach(s => {
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(247,244,255,.10)';
+      ctx.ellipse(Sky.w/2, Sky.h/2, s.rx, s.ry, 0, 0, Math.PI*2);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  // Satellites
+  Sky.t += 0.016;
+  Sky.stars.forEach(s => {
+    s.angle += s.speed * 0.01;
+    const p = skyPosition(s);
+    const pulse = 0.88 + 0.12 * Math.sin(Sky.t * 1.6 + s.phase);
+
+    // Halo diffus
+    const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4.2);
+    halo.addColorStop(0, hexAlpha(s.color, 0.34 * pulse));
+    halo.addColorStop(1, hexAlpha(s.color, 0));
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * 4.2, 0, Math.PI*2);
+    ctx.fill();
+
+    // Corps : dégradé du blanc vers la couleur du rêve
+    const body = ctx.createRadialGradient(
+      p.x - p.r*0.35, p.y - p.r*0.35, 0,
+      p.x, p.y, p.r
+    );
+    body.addColorStop(0, '#FFFFFF');
+    body.addColorStop(0.45, 'rgba(255,255,255,.85)');
+    body.addColorStop(1, s.color);
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * pulse, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  Sky.raf = requestAnimationFrame(loopSky);
+}
+
+/* Convertit #RRGGBB en rgba(...) — pour les dégradés du canvas. */
+function hexAlpha(hex, a){
+  const v = String(hex||'#A99AFF').replace('#','');
+  const n = parseInt(v.length === 3 ? v.split('').map(c=>c+c).join('') : v, 16);
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + a + ')';
+}
+
+function renderSky(){
+  buildSkyDots();
+  if (!Sky.raf) loopSky();
+}
+
 function renderUnivers(){
   const n = State.dreams.length;
   const cap = $('#orb-caption');
@@ -450,7 +616,7 @@ function renderUnivers(){
   else if (n === 1) cap.textContent = '1 fragment veille dans votre ciel.';
   else cap.textContent = n + ' fragments veillent dans votre ciel.';
 
-  buildOrbits();
+  renderSky();
   renderConstellations();
   renderRecent();
 }

@@ -320,8 +320,10 @@
     <button class="btn danger-ghost" id="dr-delete" type="button">Supprimer ce rêve</button>
   </div>
 
-  <form class="inline-edit" id="dr-edit-form" hidden>
-    <label class="field">
+      <fieldset class="field">
+      <legend class="field-label">Émotions <em>facultatif</em></legend>
+      <div class="chips" id="dr-edit-emotions" role="group" aria-label="Émotions"></div>
+    </fieldset>
       <span class="field-label">Titre</span>
       <input type="text" id="dr-edit-titre" maxlength="120" autocomplete="off">
     </label>

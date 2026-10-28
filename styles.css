@@ -129,17 +129,54 @@ body.locked{overflow:hidden}
   background:linear-gradient(120deg,rgba(255,255,255,.85),transparent);
   filter:blur(6px);transform:rotate(-28deg);pointer-events:none;
 }
-.orb-ring{position:absolute;border-radius:50%;border:1px solid rgba(247,244,255,.22);inset:8%}
-.orb-ring i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--pearl);box-shadow:0 0 12px 3px rgba(169,154,255,.9)}
-.r1{transform:rotate(-24deg) scaleX(1.06);animation:spin1 26s linear infinite}
-.r1 i{top:-3px;left:50%}
-.r2{inset:16%;transform:rotate(22deg) scaleX(1.14);border-color:rgba(128,229,223,.28);animation:spin2 34s linear infinite reverse}
-.r2 i{background:var(--turquoise);box-shadow:0 0 12px 3px rgba(128,229,223,.85);top:auto;bottom:-3px;left:36%}
-.r3{inset:1%;border-color:rgba(242,182,216,.20);transform:rotate(64deg) scaleY(.5);animation:spin3 44s linear infinite}
-.r3 i{background:var(--rose);box-shadow:0 0 12px 3px rgba(242,182,216,.8);top:50%;right:-3px}
-@keyframes spin1{to{transform:rotate(336deg) scaleX(1.06)}}
-@keyframes spin2{to{transform:rotate(382deg) scaleX(1.14)}}
-@keyframes spin3{to{transform:rotate(424deg) scaleY(.5)}}
+.orb-ring{position:absolute;border-radius:50%;border:1.5px solid transparent;inset:8%}
+.r1{
+  border-color:rgba(247,244,255,.20);
+  border-top-color:rgba(247,244,255,.55);
+  transform:rotate(-24deg) scaleX(1.06);
+  animation:spin1 26s linear infinite;
+  box-shadow:0 0 22px -6px rgba(247,244,255,.5);
+}
+.r2{
+  inset:15%;
+  border-color:rgba(128,229,223,.16);
+  border-top-color:rgba(128,229,223,.62);
+  transform:rotate(22deg) scaleX(1.14);
+  animation:spin2 34s linear infinite reverse;
+  box-shadow:0 0 22px -6px rgba(128,229,223,.55);
+}
+.r3{
+  inset:1%;
+  border-color:rgba(242,182,216,.12);
+  border-top-color:rgba(242,182,216,.52);
+  transform:rotate(64deg) scaleY(.5);
+  animation:spin3 44s linear infinite;
+  box-shadow:0 0 22px -8px rgba(242,182,216,.45);
+}
+
+/* Satellites : taille proportionnelle à la sphère, noyau + halo + reflet */
+.orb-ring i{
+  position:absolute;
+  width:5.5%;height:5.5%;min-width:13px;min-height:13px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 34% 30%,rgba(255,255,255,.98),rgba(255,255,255,.72) 34%,currentColor 78%);
+  color:var(--pearl);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.35),
+    0 0 14px 3px currentColor,
+    0 0 34px 8px rgba(247,244,255,.30);
+  animation:satPulse 4.2s ease-in-out infinite;
+}
+.orb-ring i::after{
+  content:"";position:absolute;inset:-90%;border-radius:50%;
+  background:radial-gradient(circle,currentColor,transparent 68%);
+  opacity:.30;pointer-events:none;
+}
+.r1 i{top:-2.75%;left:47.25%}
+.r2 i{color:var(--turquoise);top:auto;bottom:-2.75%;left:30%;box-shadow:0 0 0 1px rgba(255,255,255,.30),0 0 14px 3px currentColor,0 0 34px 8px rgba(128,229,223,.30);animation-delay:1.4s}
+.r3 i{color:var(--rose);width:4.5%;height:4.5%;top:47.75%;right:-2.75%;box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 12px 3px currentColor,0 0 28px 7px rgba(242,182,216,.28);animation-delay:2.6s}
+@keyframes satPulse{0%,100%{transform:scale(1);opacity:.92}50%{transform:scale(1.18);opacity:1}}
 .orb-halo{position:absolute;border-radius:50%;filter:blur(20px);pointer-events:none}
 .h1{inset:-6%;background:radial-gradient(circle,rgba(169,154,255,.30),transparent 66%);animation:pulse 6.5s ease-in-out infinite}
 .h2{inset:12%;background:radial-gradient(circle,rgba(128,229,223,.22),transparent 62%);animation:pulse 8.5s ease-in-out infinite reverse}

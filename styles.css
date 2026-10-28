@@ -139,39 +139,51 @@ body.locked{overflow:hidden}
 /* Satellites : agrandis, halo large, et DEUX animations simultanées —
    l'orbite par left/top (le tour de la piste) et la pulsation par transform.
    Séparer les deux propriétés est ce qui permet aux deux de cohabiter. */
-.orb-ring i{
+/* Conteneur des orbites */
+.orb-orbits{position:absolute;inset:0;display:block}
+
+/* Piste : une ellipse inclinée. Pas de box-shadow sur l'anneau lui-même —
+   dans Safari, un scaleY animé combiné à une ombre portée perd son mouvement. */
+.orb-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid transparent;
+  border-top-color:rgba(247,244,255,.42);
+  border-right-color:rgba(247,244,255,.14);
+  transform:rotate(var(--tilt,-24deg)) scaleY(var(--squash,.42));
+  will-change:transform;
+}
+.orb-ring.empty{animation:none;opacity:.5}
+.orb-ring.empty.r1{border-top-color:rgba(247,244,255,.30)}
+.orb-ring.empty.r2{inset:14%;border-top-color:rgba(128,229,223,.28)}
+.orb-ring.empty.r3{inset:2%;border-top-color:rgba(242,182,216,.24)}
+
+/* Satellite : DEUX animations sur deux propriétés distinctes.
+   L'orbite utilise left/top, la pulsation utilise transform — c'est la seule
+   façon pour que les deux tournent en même temps dans Safari. */
+.orb-ring.sat i{
   position:absolute;display:block;
   width:7.5%;height:7.5%;min-width:19px;min-height:19px;
-  border-radius:50%;
+  border-radius:50%;cursor:pointer;
   background:radial-gradient(circle at 34% 28%,#FFFFFF 0%,rgba(255,255,255,.94) 24%,currentColor 72%,currentColor 100%);
-  color:var(--pearl);
-  box-shadow:0 0 0 1px rgba(255,255,255,.40),0 0 16px 4px currentColor,0 0 42px 13px rgba(247,244,255,.34);
+  box-shadow:0 0 0 1px rgba(255,255,255,.38),0 0 14px 3px currentColor,0 0 34px 10px rgba(247,244,255,.22);
+  animation:satOrbit var(--dur,24s) linear var(--d-off,0s) infinite,
+            satPulse 3.6s ease-in-out infinite;
+  transition:filter .2s;
 }
-.orb-ring i::after{
+.orb-ring.sat i:active{filter:brightness(1.4)}
+.orb-ring.sat i::after{
   content:"";position:absolute;inset:-130%;border-radius:50%;
   background:radial-gradient(circle,currentColor,transparent 66%);
-  opacity:.34;pointer-events:none;
+  opacity:.30;pointer-events:none;
 }
-.r1 i{animation:orbit1 14s linear infinite, satPulse 3.6s ease-in-out infinite}
-.r2 i{color:var(--turquoise);animation:orbit2 20s linear infinite, satPulse 3.6s ease-in-out 1.2s infinite;box-shadow:0 0 0 1px rgba(255,255,255,.34),0 0 16px 4px currentColor,0 0 42px 13px rgba(128,229,223,.34)}
-.r3 i{color:var(--rose);width:6%;height:6%;min-width:16px;min-height:16px;animation:orbit3 28s linear infinite, satPulse 4.4s ease-in-out 2.2s infinite;box-shadow:0 0 0 1px rgba(255,255,255,.30),0 0 14px 4px currentColor,0 0 36px 11px rgba(242,182,216,.32)}
 
-/* Tour complet de la piste, en pourcentage de l'anneau (les valeurs
-   dépassent légèrement les bornes pour que le satellite frôle le bord). */
-@keyframes orbit1{
-  0%{left:50%;top:-3.75%} 25%{left:96.25%;top:50%}
-  50%{left:50%;top:103.75%} 75%{left:-3.75%;top:50%}
-  100%{left:50%;top:-3.75%}
+/* Orbite : le satellite décrit un cercle, alors que sa piste est aplatie
+   par scaleY. On compense en parcourant une ellipse, pas un cercle. */
+@keyframes satOrbit{
+  0%  {left:calc(50% + 50% * var(--cos0,1)); top:calc(50% + 50% * var(--sin0,0))}
+  100%{left:50%; top:50%}
 }
-@keyframes orbit2{
-  0%{left:30%;top:103.75%} 25%{left:-3.75%;top:50%}
-  50%{left:50%;top:-3.75%} 75%{left:103.75%;top:50%}
-  100%{left:30%;top:103.75%}
-}
-@keyframes orbit3{
-  0%{left:97%;top:50%} 25%{left:50%;top:97%}
-  50%{left:3%;top:50%} 75%{left:50%;top:3%}
-  100%{left:97%;top:50%}
+@keyframes satPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.2);opacity:1}}
 }
 @keyframes satPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.22);opacity:1}}
 

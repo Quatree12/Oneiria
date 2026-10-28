@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090A16">
+<title>ONEIRIA — Guide de test</title>
+<link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{padding:0}
+  .guide-wrap{position:relative;z-index:10;max-width:640px;margin:0 auto;padding:calc(26px + env(safe-area-inset-top,0px)) var(--pad) calc(40px + env(safe-area-inset-bottom,0px))}
+  .guide-wrap h1{font-family:var(--serif);font-size:27px;font-weight:400;margin:0 0 6px;
+    background:linear-gradient(112deg,var(--pearl),var(--violet) 72%,var(--turquoise));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .guide-wrap .lede{margin:0 0 24px;font-size:13px;line-height:1.7;color:var(--ink-3)}
+  .gcard{position:relative;padding:16px 16px 14px;margin-bottom:12px;border-radius:var(--radius-m);
+    border:1px solid var(--line-soft);background:linear-gradient(150deg,rgba(255,255,255,.07),rgba(255,255,255,.024));
+    backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:var(--shadow)}
+  .gcard h3{margin:0 0 9px;font-size:14.5px;font-weight:600;display:flex;gap:9px;align-items:baseline}
+  .gnum{flex:0 0 auto;font-size:11px;color:var(--violet);letter-spacing:.14em}
+  .gcard ol{margin:0;padding-left:19px;font-size:13px;line-height:1.72;color:var(--ink-2)}
+  .gcard ol li{margin-bottom:7px}
+  .gcard p{margin:0;font-size:13px;line-height:1.7;color:var(--ink-2)}
+  .gcard b{color:var(--ink-1);font-weight:600}
+  .auto{display:flex;align-items:center;gap:10px;margin-top:12px;padding:11px 13px;border-radius:var(--radius-s);
+    border:1px solid rgba(169,154,255,.3);background:rgba(169,154,255,.09);font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+  .auto.ok{border-color:rgba(128,229,223,.42);background:rgba(128,229,223,.09);color:var(--ink-1)}
+  .auto.bad{border-color:rgba(242,182,216,.45);background:rgba(242,182,216,.09);color:var(--ink-1)}
+  .backrow{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+  .warnbox{margin:22px 0 0;padding:14px;border-radius:var(--radius-m);border:1px solid rgba(242,182,216,.3);
+    background:rgba(242,182,216,.07);font-size:12.5px;line-height:1.68;color:var(--ink-2)}
+  .warnbox h4{margin:0 0 7px;font-size:13.5px;color:var(--pearl)}
+</style>
+</head>
+<body>
+
+<div id="cosmos" aria-hidden="true">
+  <canvas id="stars"></canvas>
+  <div class="nebula n1"></div>
+  <div class="nebula n2"></div>
+  <div class="nebula n3"></div>
+</div>
+
+<div class="guide-wrap">
+  <p class="eyebrow">Oneiria</p>
+  <h1>Guide de test</h1>
+  <p class="lede">Quatorze scénarios, dans l’ordre. Les vérifications marquées d’une pastille sont exécutées automatiquement
+  au chargement de cette page, sur l’environnement réel de votre navigateur.</p>
+
+  <div id="auto-zone"></div>
+
+  <div class="gcard">
+    <h3><span class="gnum">01</span> Ouvrir chaque destination</h3>
+    <ol>
+      <li>Toucher tour à tour <b>Univers</b>, <b>Raccontes</b>, <b>Décrit</b>, <b>Memory</b> en bas de l’écran.</li>
+      <li>À chaque fois, vérifier que l’écran change, que l’onglet actif passe au violet, et qu’aucun défilement horizontal n’apparaît.</li>
+      <li>Sur l’Univers, ouvrir l’icône d’engrenage en haut à droite : les réglages et la confidentialité s’affichent.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">02</span> Créer un rêve écrit et le retrouver</h3>
+    <ol>
+      <li>Univers → <b>Je me souviens d’un rêve</b>.</li>
+      <li>Écrire au moins une phrase, choisir une émotion, ajouter deux mots-clés séparés par une virgule.</li>
+      <li><b>Enregistrer</b> → l’écran <b>Dessine</b> s’ouvre.</li>
+      <li>Toucher <b>Passer le dessin</b> → retour à l’Univers. La constellation du mot-clé est apparue, et le fragment est dans <b>Derniers fragments</b>.</li>
+      <li>Onglet <b>Memory</b> → le rêve y est, avec sa date, son émotion et ses mots-clés.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">03</span> Créer une entrée « Rêve oublié »</h3>
+    <ol>
+      <li>Univers → <b>Je ne m’en souviens plus</b>.</li>
+      <li>Une confirmation apparaît, puis une entrée datée <b>« Rêve oublié »</b> est créée et l’Univers réaffiche le ciel.</li>
+      <li>La refaire le même jour : ONEIRIA demande si vous voulez vraiment en ajouter une seconde.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">04</span> Dictée et mode manuel</h3>
+    <ol>
+      <li>Onglet <b>Décrit</b>. Lire le message sous le cercle.</li>
+      <li>Si le cercle est actif : appuyer, autoriser le microphone, parler. La transcription s’écrit pendant la dictée.</li>
+      <li>Appuyer sur <b>Arrêter l’écoute</b>, corriger le texte à la main si besoin.</li>
+      <li>Si le cercle est désactivé : c’est que le navigateur ne propose pas la reconnaissance vocale.
+      ONEIRIA ne l’active pas et vous le dit. Touchez le champ de transcription : sur iPhone, l’icône microphone
+      du clavier iOS permet de dicter, et le texte arrive normalement dans le champ.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">05</span> Dessiner : couleur, gomme, annulation</h3>
+    <ol>
+      <li>Ouvrir un rêve depuis Memory ou créer un rêve neuf pour arriver sur <b>Dessine</b>.</li>
+      <li>Tracer un trait avec le doigt (ou la souris).</li>
+      <li>Choisir une autre couleur dans la palette, tracer un second trait.</li>
+      <li>Passer en <b>Gomme</b>, frotter sur une partie du dessin : seule cette partie disparaît.</li>
+      <li>Toucher <b>Annuler</b> : le dernier trait de gomme disparaît, le reste reste intact.</li>
+      <li>Changer l’épaisseur (Fin / Moyen / Épais) et vérifier que le trait suivant est plus large ou plus fin.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">06</span> Sauvegarder un dessin et vérifier l’association</h3>
+    <ol>
+      <li>Toucher <b>Garder le dessin</b>.</li>
+      <li>Dans <b>Memory</b>, ouvrir le rêve : la vignette du dessin apparaît dans la carte et en grand dans la fiche détail.</li>
+      <li>Ouvrir un <b>autre</b> rêve dessiné : chaque dessin reste attaché à son propre rêve, jamais décalé.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">07</span> Fermer puis rouvrir : persistance</h3>
+    <ol>
+      <li>Fermer complètement l’onglet (ou l’application installée) puis la rouvrir.</li>
+      <li>Tous les rêves et tous les dessins sont toujours là.</li>
+      <li>Réglages → la ligne de stockage indique la base locale active et l’espace utilisé.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">08</span> Modifier un rêve</h3>
+    <ol>
+      <li>Ouvrir un rêve → <b>Modifier</b>.</li>
+      <li>Changer le titre et le texte du premier fragment → <b>Sauvegarder</b>.</li>
+      <li>Le titre mis à jour apparaît dans la fiche, dans Memory et dans Derniers fragments.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">09</span> Ajouter un fragment à un rêve existant</h3>
+    <ol>
+      <li>Ouvrir un rêve → <b>Ajouter un fragment</b>.</li>
+      <li>Écrire la suite, ajouter un mot-clé, valider.</li>
+      <li>Vérifier que le <b>premier récit est toujours là</b>, sous la mention « Fragment original », et que le nouveau figure dessous avec sa date propre.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">10</span> Recherche et filtres</h3>
+    <ol>
+      <li>Memory → taper un mot présent dans un rêve. La liste se réduit.</li>
+      <li>Effacer la recherche avec la croix du champ.</li>
+      <li>Tester les filtres <b>Tous</b>, <b>Écrits</b>, <b>Racontés</b>, <b>Oubliés</b>, <b>Avec dessin</b>.</li>
+      <li>Depuis l’Univers, toucher une <b>bulle de constellation</b> : Memory s’ouvre filtré sur ce thème, avec un moyen de le retirer.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">11</span> Exporter puis réimporter du JSON</h3>
+    <ol>
+      <li>Réglages → <b>Exporter en JSON</b>. Un fichier <b>oneiria-AAAAMMJJ-HHMM.json</b> est téléchargé.</li>
+      <li>Modifier un rêve pour créer une différence, ou supprimer l’application et la réinstaller.</li>
+      <li>Réglages → <b>Importer un fichier JSON</b> → choisir le fichier exporté.</li>
+      <li>Confirmer : les rêves sont ajoutés, rien n’est effacé, et les dessins reviennent avec leurs rêves.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">12</span> Supprimer une entrée</h3>
+    <ol>
+      <li>Ouvrir un rêve → <b>Supprimer ce rêve</b>.</li>
+      <li>Un dialogue demande confirmation : annuler d’abord pour vérifier que rien ne disparaît.</li>
+      <li>Recommencer et confirmer : la carte quitte Memory et Univers immédiatement.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">13</span> Affichage en largeur iPhone</h3>
+    <ol>
+      <li>Tourner l’iPhone en portrait et parcourir les quatre écrans.</li>
+      <li>Aucun défilement horizontal, aucun texte coupé, les boutons restent larges sous le pouce.</li>
+      <li>Ajouter l’app sur l’écran d’accueil (Safari → Partager → Sur l’écran d’accueil) : elle s’ouvre en plein écran, sans barre d’adresse.</li>
+    </ol>
+  </div>
+
+  <div class="gcard">
+    <h3><span class="gnum">14</span> Aucun bouton décoratif</h3>
+    <ol>
+      <li>Chaque bouton rencontré doit produire un effet visible : navigation, enregistrement, ouverture d’une feuille, confirmation, ou message explicite.</li>
+      <li>Les seuls retours acceptables sont un message clair : « Aucun trait à annuler », « Le dessin est déjà vide », etc.</li>
+      <li>En cas de doute, toucher le bouton et vérifier qu’il se passe quelque chose — jamais un silence.</li>
+    </ol>
+  </div>
+
+  <div class="warnbox">
+    <h4>Ce que ce guide ne peut pas valider à ma place</h4>
+    <p>La reconnaissance vocale selon la version d’iOS, les zones de sécurité autour de l’encoche et de la barre d’accueil,
+    l’installation sur l’écran d’accueil, la fluidité réelle des animations et la limite de stockage de Safari
+    ne se jugent que sur un appareil physique. Les tests automatiques ci-dessus portent sur les capacités du navigateur,
+    pas sur le confort d’usage.</p>
+  </div>
+
+  <div class="backrow">
+    <button class="btn primary" id="g-open" type="button">Ouvrir ONEIRIA</button>
+    <button class="btn subtle" id="g-wipe" type="button">Supprimer toutes mes données</button>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<section class="dialog" id="dialog" role="alertdialog" aria-modal="true" hidden>
+  <div class="dialog-card">
+    <h3 id="dlg-title">Confirmer</h3>
+    <p id="dlg-text"></p>
+    <div class="dialog-actions">
+      <button class="btn ghost" id="dlg-cancel" type="button">Annuler</button>
+      <button class="btn primary" id="dlg-ok" type="button">Confirmer</button>
+    </div>
+  </div>
+</section>
+
+<script src="guide.js" defer></script>
+</body>
+</html>

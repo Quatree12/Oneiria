@@ -1,0 +1,18 @@
+{
+  "name": "ONEIRIA — Your dreams, your universe",
+  "short_name": "ONEIRIA",
+  "description": "Journal de rêves local : écrire, dicter, dessiner, retrouver. Vos rêves restent sur votre appareil.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090A16",
+  "theme_color": "#090A16",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-512.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
